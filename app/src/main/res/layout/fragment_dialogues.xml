@@ -4,10 +4,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.messages.MessagesFragment">
+    tools:context=".ui.messages.DialoguesFragment">
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerView"
+        android:id="@+id/dialogue_recyclerView"
         android:layout_width="match_parent"
         app:layout_constraintVertical_weight="3"
         android:layout_height="0dp"
