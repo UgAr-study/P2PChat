@@ -13,9 +13,15 @@ import java.util.ArrayList;
 
 public class SQLUserData {
     SQLUserDataHelper helper;
+    SQLiteDatabase db;
+    Cursor cursor;
 
     public SQLUserData(Context context, String id) {
         helper = new SQLUserDataHelper(context, id);
+        db = helper.getReadableDatabase();
+        cursor = db.query(SQLUserInfoHelper.TABLE_NAME, null,
+                null, null, null, null, null);
+        cursor.moveToLast();
     }
 
     public void insert(int timeStamp, String msg) {
@@ -26,30 +32,28 @@ public class SQLUserData {
 
         SQLiteDatabase dataBase = helper.getWritableDatabase();
         dataBase.insert(SQLUserInfoHelper.TABLE_NAME, null, contentValues);
-
-        helper.close();
     }
 
-    public ArrayList<Pair<Integer, String>> getLastRows(int numRows) {
+    public ArrayList<Pair<Integer, String>> loadLastMsg(int numRows) {
         ArrayList<Pair<Integer, String>> res = new ArrayList<>();
-
-        SQLiteDatabase db = helper.getReadableDatabase();
-        Cursor cursor = db.query(SQLUserInfoHelper.TABLE_NAME, null,
-                null, null, null, null, null);
-        cursor.moveToLast();
 
         int i = 0;
         while (!cursor.isFirst()) {
-            if (Integer.compare(i, numRows) == 0) {
+            if (i == numRows) {
                 break;
             }
-            cursor.moveToNext();
-            res.add(new Pair<Integer, String>(cursor.getInt(cursor.getColumnIndex(SQLUserDataHelper.KEY_TIME)),
-                                              cursor.getString(cursor.getColumnIndex(SQLUserDataHelper.KEY_MSG))));
+            cursor.moveToPrevious();
+            res.add(new Pair<>(cursor.getInt(cursor.getColumnIndex(SQLUserDataHelper.KEY_TIME)),
+                    cursor.getString(cursor.getColumnIndex(SQLUserDataHelper.KEY_MSG))));
             i++;
         }
-        cursor.close();
         return res;
+    }
+
+    public void close() {
+        cursor.close();
+        db.close();
+        helper.close();
     }
 }
 
