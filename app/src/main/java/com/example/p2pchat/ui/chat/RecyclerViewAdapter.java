@@ -44,7 +44,6 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         holder.fromName.setText(ss);
         holder.message.setText(messageItems.get(position).getMessage());
         holder.timeStamp.setText(messageItems.get(position).getTime());
-
     }
 
     @Override
