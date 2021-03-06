@@ -16,10 +16,14 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
+import java.net.DatagramSocket;
+
 
 public class MainActivity extends AppCompatActivity {
 
     DialoguesFragment dialoguesFragment;
+    HomeFragment homeFragment;
+    DashboardFragment dashboardFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,6 +45,8 @@ public class MainActivity extends AppCompatActivity {
         }
 
         dialoguesFragment = DialoguesFragment.getDialoguesFragment(this);
+        homeFragment = new HomeFragment();
+        dashboardFragment = new DashboardFragment();
     }
 
     private BottomNavigationView.OnNavigationItemSelectedListener navListener =
@@ -51,11 +57,11 @@ public class MainActivity extends AppCompatActivity {
 
             switch (item.getItemId()) {
                 case R.id.navigation_home:
-                    selectedFragment = new HomeFragment();
+                    selectedFragment = homeFragment;
                     break;
 
                 case R.id.navigation_dashboard:
-                    selectedFragment = new DashboardFragment();
+                    selectedFragment = dashboardFragment;
                     break;
 
                 case R.id.navigation_dialogues:
@@ -65,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
 
             if (selectedFragment != null)
                 getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.fragment_container, selectedFragment).commit();
+                        .replace(R.id.fragment_container, selectedFragment).addToBackStack(null).commit();
 
             return true;
         }

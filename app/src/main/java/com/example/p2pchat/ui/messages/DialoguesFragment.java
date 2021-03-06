@@ -2,6 +2,7 @@ package com.example.p2pchat.ui.messages;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -24,6 +25,8 @@ public class DialoguesFragment extends Fragment {
     private DialoguesRecyclerViewAdapter dialogueAdapter;
     private LinearLayoutManager lm;
     private Context context;
+    private final String SAVED_STATUS_ID = "saved_status_id";
+    private final String SAVED_DATASET = "seved_dataset";
 
     public static DialoguesFragment getDialoguesFragment(Context c) {
         DialoguesFragment f = new DialoguesFragment();
@@ -49,6 +52,8 @@ public class DialoguesFragment extends Fragment {
             dialogueRecyclerView.setLayoutManager(lm);
         }
 
+        dialogueRecyclerView.setAdapter(dialogueAdapter);
+        dialogueRecyclerView.setLayoutManager(lm);
         return view;
     }
 
@@ -63,6 +68,12 @@ public class DialoguesFragment extends Fragment {
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
+
+        Parcelable listState = dialogueRecyclerView.getLayoutManager().onSaveInstanceState();
+        outState.putParcelable(SAVED_STATUS_ID, listState);
+
+
+
         super.onSaveInstanceState(outState);
 
         //TODO: save instance!!!
