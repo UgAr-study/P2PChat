@@ -7,6 +7,9 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Pair;
 
+import com.example.p2pchat.ui.chat.MessageItem;
+import com.example.p2pchat.ui.chat.RecyclerViewAdapter;
+
 import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
@@ -15,16 +18,18 @@ public class SQLUserData {
     SQLUserDataHelper helper;
     SQLiteDatabase db;
     Cursor cursor;
+    String userId;
 
-    public SQLUserData(Context context, String id) {
-        helper = new SQLUserDataHelper(context, id);
+    public SQLUserData(Context context, String identifier) {
+        helper = new SQLUserDataHelper(context, identifier);
         db = helper.getReadableDatabase();
+        userId = identifier;
         cursor = db.query(SQLUserInfoHelper.TABLE_NAME, null,
                 null, null, null, null, null);
         cursor.moveToLast();
     }
 
-    public void insert(int timeStamp, String msg) {
+    public void insert(long timeStamp, String msg) {
         ContentValues contentValues = new ContentValues();
 
         contentValues.put(SQLUserDataHelper.KEY_TIME, timeStamp);
@@ -34,8 +39,8 @@ public class SQLUserData {
         dataBase.insert(SQLUserInfoHelper.TABLE_NAME, null, contentValues);
     }
 
-    public ArrayList<Pair<Integer, String>> loadLastMsg(int numRows) {
-        ArrayList<Pair<Integer, String>> res = new ArrayList<>();
+    public ArrayList<MessageItem> loadLastMsg(int numRows) {
+        ArrayList<MessageItem> res = new ArrayList<>();
 
         int i = 0;
         while (!cursor.isFirst()) {
@@ -43,8 +48,9 @@ public class SQLUserData {
                 break;
             }
             cursor.moveToPrevious();
-            res.add(new Pair<>(cursor.getInt(cursor.getColumnIndex(SQLUserDataHelper.KEY_TIME)),
-                    cursor.getString(cursor.getColumnIndex(SQLUserDataHelper.KEY_MSG))));
+            int time = cursor.getInt(cursor.getColumnIndex(SQLUserDataHelper.KEY_TIME));
+            res.add(new MessageItem(userId, cursor.getString(cursor.getColumnIndex(SQLUserDataHelper.KEY_MSG)),
+                    cursor.getInt(cursor.getColumnIndex(SQLUserDataHelper.KEY_TIME))));
             i++;
         }
         return res;
