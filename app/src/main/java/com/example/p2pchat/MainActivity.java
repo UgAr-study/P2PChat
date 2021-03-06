@@ -32,21 +32,15 @@ public class MainActivity extends AppCompatActivity {
 
         BottomNavigationView navView = findViewById(R.id.nav_view);
 
-        navView.setOnNavigationItemSelectedListener(navListener);
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.fragment_container, new HomeFragment()).commit();
-
-        setOnClickTestButton();
-
-        if (savedInstanceState != null) {
-            //TODO: Restore the fragment's instance
-            dialoguesFragment = (DialoguesFragment) getSupportFragmentManager().getFragment(savedInstanceState, "myFragmentName");
-            return;
-        }
-
         dialoguesFragment = DialoguesFragment.getDialoguesFragment(this);
         homeFragment = new HomeFragment();
         dashboardFragment = new DashboardFragment();
+
+        navView.setOnNavigationItemSelectedListener(navListener);
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container, homeFragment).commit();
+
+        setOnClickTestButton();
     }
 
     private BottomNavigationView.OnNavigationItemSelectedListener navListener =

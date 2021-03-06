@@ -24,16 +24,14 @@ public class DialoguesFragment extends Fragment {
     private RecyclerView dialogueRecyclerView;
     private DialoguesRecyclerViewAdapter dialogueAdapter;
     private LinearLayoutManager lm;
-    private Context context;
+    //private Context context;
     private final String SAVED_STATUS_ID = "saved_status_id";
     private final String SAVED_DATASET = "seved_dataset";
 
     public static DialoguesFragment getDialoguesFragment(Context c) {
         DialoguesFragment f = new DialoguesFragment();
-        f.context = c;
+        //f.context = c;
         f.dialogueAdapter = new DialoguesRecyclerViewAdapter(c);
-        f.lm = new LinearLayoutManager(c);
-        f.lm.setStackFromEnd(true);
         Log.e("MyTAG", "DialogFragment: \"constructor\"");
         return f;
     }
@@ -45,40 +43,15 @@ public class DialoguesFragment extends Fragment {
         Log.e("MyTAG", "DialogFragment: onCreateView");
         View view = inflater.inflate(R.layout.fragment_dialogues, container, false);
 
-        if (dialogueRecyclerView == null) {
-            dialogueRecyclerView = view.findViewById(R.id.dialogue_recyclerView);
-
-            dialogueRecyclerView.setAdapter(dialogueAdapter);
-            dialogueRecyclerView.setLayoutManager(lm);
-        }
+        dialogueRecyclerView = view.findViewById(R.id.dialogue_recyclerView);
+        lm = new LinearLayoutManager(getContext());
+        lm.setStackFromEnd(false);
 
         dialogueRecyclerView.setAdapter(dialogueAdapter);
         dialogueRecyclerView.setLayoutManager(lm);
         return view;
     }
 
-    @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        //TODO: restore instance!!!
-        if (savedInstanceState != null) {
-            //Restore the fragment's state here
-        }
-    }
-
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-
-        Parcelable listState = dialogueRecyclerView.getLayoutManager().onSaveInstanceState();
-        outState.putParcelable(SAVED_STATUS_ID, listState);
-
-
-
-        super.onSaveInstanceState(outState);
-
-        //TODO: save instance!!!
-        //Save the fragment's state here
-    }
 
     @Override
     public void onAttach(@NonNull Context context) {
@@ -119,7 +92,7 @@ public class DialoguesFragment extends Fragment {
     public void onUpdateDialoguesList (DialogueItem dItem) {
 
         if (dItem == null) {
-            Toast.makeText(context, "Fail: try to add null object", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Fail: try to add null object", Toast.LENGTH_SHORT).show();
             return;
         }
 
