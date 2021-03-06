@@ -25,6 +25,8 @@ public class MainActivity extends AppCompatActivity {
     HomeFragment homeFragment;
     DashboardFragment dashboardFragment;
 
+    public static final String EXTRA_USER_PUBLIC_KEY = "public_key";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
