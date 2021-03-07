@@ -31,11 +31,12 @@ public class ChatActivity extends AppCompatActivity {
 
         userPubKey = intent.getStringExtra(MainActivity.EXTRA_USER_PUBLIC_KEY);
 
-        sqlUserData = new SQLUserData(this, userPubKey);
+        /*sqlUserData = new SQLUserData(this, userPubKey);
 
         mMessages = sqlUserData.loadLastMsg(NUM_LOAD_ROWS);
 
         RecyclerView recyclerView = findViewById(R.id.recyclerView);
-        recyclerViewAdapter = new RecyclerViewAdapter(this, mMessages);
+        recyclerViewAdapter = new RecyclerViewAdapter(this, mMessages);*/
     }
+
 }

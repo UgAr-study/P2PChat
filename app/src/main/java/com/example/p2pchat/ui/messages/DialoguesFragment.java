@@ -28,10 +28,10 @@ public class DialoguesFragment extends Fragment {
     private final String SAVED_STATUS_ID = "saved_status_id";
     private final String SAVED_DATASET = "seved_dataset";
 
-    public static DialoguesFragment getDialoguesFragment(Context c) {
+    public static DialoguesFragment getDialoguesFragment(Context c, DialoguesRecyclerViewAdapter.OnItemClickListener listener) {
         DialoguesFragment f = new DialoguesFragment();
         //f.context = c;
-        f.dialogueAdapter = new DialoguesRecyclerViewAdapter(c);
+        f.dialogueAdapter = new DialoguesRecyclerViewAdapter(c, listener);
         Log.e("MyTAG", "DialogFragment: \"constructor\"");
         return f;
     }
