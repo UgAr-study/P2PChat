@@ -19,17 +19,13 @@ import java.util.GregorianCalendar;
 
 public class SQLUserData {
     SQLUserDataHelper helper;
-    SQLiteDatabase db;
     Cursor cursor;
     String userId;
 
     public SQLUserData(Context context, String identifier) {
         helper = new SQLUserDataHelper(context, identifier);
-        db = helper.getReadableDatabase();
         userId = identifier;
-        cursor = db.query(SQLUserInfoHelper.TABLE_NAME, null,
-                null, null, null, null, null);
-        cursor.moveToLast();
+        cursor = null;
     }
 
     public void insert(long timeStamp, String msg) {
@@ -40,29 +36,36 @@ public class SQLUserData {
 
         SQLiteDatabase dataBase = helper.getWritableDatabase();
         dataBase.insert(SQLUserInfoHelper.TABLE_NAME, null, contentValues);
+        dataBase.close();
     }
 
     public ArrayList<MessageItem> loadLastMsg(int numRows) {
         ArrayList<MessageItem> res = new ArrayList<>();
-
+        SQLiteDatabase db = helper.getReadableDatabase();
+        if (cursor == null) {
+            String[] cols = new String[] {SQLUserDataHelper.KEY_ID};
+            cursor = db.query(helper.TABLE_NAME, null,
+                    null, null, null, null, null);
+            cursor.moveToLast();
+        }
         int i = 0;
-        while (!cursor.isFirst()) {
+        while (!cursor.isFirst() && cursor.getPosition() == 0) {
             if (i == numRows) {
                 break;
             }
-            cursor.moveToPrevious();
             Calendar calendar = new GregorianCalendar();
             calendar.setTime(new Date(cursor.getInt(cursor.getColumnIndex(SQLUserDataHelper.KEY_TIME))));
             res.add(new MessageItem(userId, cursor.getString(cursor.getColumnIndex(SQLUserDataHelper.KEY_MSG)),
                     calendar));
             i++;
+            cursor.moveToPrevious();
         }
+        db.close();
         return res;
     }
 
     public void close() {
         cursor.close();
-        db.close();
         helper.close();
     }
 }
@@ -70,7 +73,7 @@ public class SQLUserData {
 class SQLUserDataHelper extends SQLiteOpenHelper {
     public static final int DATABASE_VERSION = 1;
     public static final String DATABASE_NAME = "USERS_MSGS";
-    public static String TABLE_NAME;
+    public String TABLE_NAME;
     public static final String KEY_ID = "_id";
     public static final String KEY_TIME = "time";
     public static final String KEY_MSG = "msg";
@@ -78,13 +81,13 @@ class SQLUserDataHelper extends SQLiteOpenHelper {
 
     public SQLUserDataHelper(@Nullable Context context, String id) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
-        TABLE_NAME = id + "_HISTORY";
+        TABLE_NAME = "PK" + id + "_HISTORY";
     }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("create table " + TABLE_NAME + "(" + KEY_ID + " integer primary key," + KEY_TIME + " integer,"
-                + KEY_MSG + " text," + " );");
+        db.execSQL("CREATE TABLE " + TABLE_NAME + " (" + KEY_ID + " INTEGER PRIMARY KEY," + KEY_TIME + " INTEGER,"
+                + KEY_MSG + " TEXT);");
     }
 
     @Override
