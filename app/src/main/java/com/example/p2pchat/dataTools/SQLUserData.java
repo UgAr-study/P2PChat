@@ -13,6 +13,9 @@ import com.example.p2pchat.ui.chat.RecyclerViewAdapter;
 import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 
 public class SQLUserData {
     SQLUserDataHelper helper;
@@ -48,9 +51,10 @@ public class SQLUserData {
                 break;
             }
             cursor.moveToPrevious();
-            int time = cursor.getInt(cursor.getColumnIndex(SQLUserDataHelper.KEY_TIME));
+            Calendar calendar = new GregorianCalendar();
+            calendar.setTime(new Date(cursor.getInt(cursor.getColumnIndex(SQLUserDataHelper.KEY_TIME))));
             res.add(new MessageItem(userId, cursor.getString(cursor.getColumnIndex(SQLUserDataHelper.KEY_MSG)),
-                    cursor.getInt(cursor.getColumnIndex(SQLUserDataHelper.KEY_TIME))));
+                    calendar));
             i++;
         }
         return res;

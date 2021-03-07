@@ -26,6 +26,7 @@ public class MainActivity extends AppCompatActivity {
     DashboardFragment dashboardFragment;
 
     public static final String EXTRA_USER_PUBLIC_KEY = "public_key";
+    public static final String EXTRA_USER_NAME = "user_name";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
