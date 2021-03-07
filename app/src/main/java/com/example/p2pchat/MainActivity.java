@@ -103,6 +103,7 @@ public class MainActivity extends AppCompatActivity implements DialoguesRecycler
     public void onItemClick(DialogueItem item) {
         Intent intent = new Intent(this, ChatActivity.class);
         intent.putExtra(EXTRA_USER_PUBLIC_KEY, item.getUserPublicKey());
+        intent.putExtra(EXTRA_USER_NAME, item.getName());
 
         Toast.makeText(MainActivity.this, item.getUserPublicKey(), Toast.LENGTH_SHORT).show();
 
