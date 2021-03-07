@@ -20,10 +20,12 @@ public class DialoguesRecyclerViewAdapter extends RecyclerView.Adapter<Dialogues
 
     ArrayList<DialogueItem> dialogueItems;
     Context context;
+    OnItemClickListener listener;
 
-    public DialoguesRecyclerViewAdapter (Context ct) {
+    public DialoguesRecyclerViewAdapter (Context ct, OnItemClickListener itemClickListener) {
         context = ct;
         dialogueItems = new ArrayList<>();
+        listener = itemClickListener;
     }
 
     @NonNull
@@ -57,7 +59,7 @@ public class DialoguesRecyclerViewAdapter extends RecyclerView.Adapter<Dialogues
         notifyItemChanged(getItemCount());
     }
 
-    public class DialogueViewHolder extends RecyclerView.ViewHolder {
+    public class DialogueViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         TextView Name;
         TextView timeStamp;
         TextView message;
@@ -67,6 +69,17 @@ public class DialoguesRecyclerViewAdapter extends RecyclerView.Adapter<Dialogues
             Name  = itemView.findViewById(R.id.nameOfUser);
             timeStamp = itemView.findViewById(R.id.timeStamp);
             message   = itemView.findViewById(R.id.last_messageText);
+
+            itemView.setOnClickListener(this);
         }
+
+        @Override
+        public void onClick(View view) {
+            listener.onItemClick(dialogueItems.get(this.getLayoutPosition()));
+        }
+    }
+
+    public interface OnItemClickListener {
+        public void onItemClick(DialogueItem item);
     }
 }

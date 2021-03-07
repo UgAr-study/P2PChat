@@ -1,5 +1,6 @@
 package com.example.p2pchat;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
@@ -10,6 +11,7 @@ import com.example.p2pchat.ui.dashboard.DashboardFragment;
 import com.example.p2pchat.ui.home.HomeFragment;
 import com.example.p2pchat.ui.messages.DialogueItem;
 import com.example.p2pchat.ui.messages.DialoguesFragment;
+import com.example.p2pchat.ui.messages.DialoguesRecyclerViewAdapter;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import androidx.annotation.NonNull;
@@ -19,7 +21,7 @@ import androidx.fragment.app.Fragment;
 import java.net.DatagramSocket;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements DialoguesRecyclerViewAdapter.OnItemClickListener {
 
     DialoguesFragment dialoguesFragment;
     HomeFragment homeFragment;
@@ -35,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
 
         BottomNavigationView navView = findViewById(R.id.nav_view);
 
-        dialoguesFragment = DialoguesFragment.getDialoguesFragment(this);
+        dialoguesFragment = DialoguesFragment.getDialoguesFragment(this, this);
         homeFragment = new HomeFragment();
         dashboardFragment = new DashboardFragment();
 
@@ -74,12 +76,14 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    private static int test_count = 0;
     public void setOnClickTestButton() {
         Button test_btn = findViewById(R.id.test_button);
         test_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                dialoguesFragment.onUpdateDialoguesList(new DialogueItem("User", "Test Text", "00:00"));
+                dialoguesFragment.onUpdateDialoguesList(new DialogueItem("User", "Test Text", "00:00", String.valueOf(test_count)));
+                test_count++;
                 Toast.makeText(MainActivity.this, "TEST", Toast.LENGTH_SHORT).show();
             }
         });
@@ -90,6 +94,18 @@ public class MainActivity extends AppCompatActivity {
         super.onSaveInstanceState(outState);
 
         //TODO: Save the fragment's instance
-        getSupportFragmentManager().putFragment(outState, "myFragmentName", dialoguesFragment);
+        //getSupportFragmentManager().putFragment(outState, "myFragmentName", dialoguesFragment);
+    }
+
+
+
+    @Override
+    public void onItemClick(DialogueItem item) {
+        Intent intent = new Intent(this, ChatActivity.class);
+        intent.putExtra(EXTRA_USER_PUBLIC_KEY, item.getUserPublicKey());
+
+        Toast.makeText(MainActivity.this, item.getUserPublicKey(), Toast.LENGTH_SHORT).show();
+
+        startActivity(intent);
     }
 }
