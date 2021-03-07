@@ -43,7 +43,6 @@ public class SQLUserData {
         ArrayList<MessageItem> res = new ArrayList<>();
         SQLiteDatabase db = helper.getReadableDatabase();
         if (cursor == null) {
-            String[] cols = new String[] {SQLUserDataHelper.KEY_ID};
             cursor = db.query(helper.TABLE_NAME, null,
                     null, null, null, null, null);
             cursor.moveToLast();
@@ -85,10 +84,17 @@ class SQLUserDataHelper extends SQLiteOpenHelper {
     }
 
     @Override
-    public void onCreate(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE " + TABLE_NAME + " (" + KEY_ID + " INTEGER PRIMARY KEY," + KEY_TIME + " INTEGER,"
+    public void onOpen(SQLiteDatabase db) {
+        db.execSQL("CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (" + KEY_ID + " INTEGER PRIMARY KEY," + KEY_TIME + " INTEGER,"
                 + KEY_MSG + " TEXT);");
     }
+
+    @Override
+    public void onCreate(SQLiteDatabase db) {
+        db.execSQL("CREATE TABLE" + TABLE_NAME + " (" + KEY_ID + " INTEGER PRIMARY KEY," + KEY_TIME + " INTEGER,"
+                + KEY_MSG + " TEXT);");
+    }
+
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
