@@ -28,10 +28,10 @@ public class SQLUserData {
         cursor = null;
     }
 
-    public void insert(long timeStamp, String msg) {
+    public void insert(Calendar timeStamp, String msg) {
         ContentValues contentValues = new ContentValues();
 
-        contentValues.put(SQLUserDataHelper.KEY_TIME, timeStamp);
+        contentValues.put(SQLUserDataHelper.KEY_TIME, timeStamp.getTime().getTime());
         contentValues.put(SQLUserDataHelper.KEY_MSG, msg);
 
         SQLiteDatabase dataBase = helper.getWritableDatabase();
