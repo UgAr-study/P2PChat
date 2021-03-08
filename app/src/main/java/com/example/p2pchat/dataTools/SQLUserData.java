@@ -5,10 +5,8 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.util.Pair;
 
 import com.example.p2pchat.ui.chat.MessageItem;
-import com.example.p2pchat.ui.chat.RecyclerViewAdapter;
 
 import androidx.annotation.Nullable;
 
@@ -28,14 +26,15 @@ public class SQLUserData {
         cursor = null;
     }
 
-    public void insert(Calendar timeStamp, String msg) {
+    public void insert(String author ,Calendar timeStamp, String msg) {
         ContentValues contentValues = new ContentValues();
 
+        contentValues.put(SQLUserDataHelper.KEY_AUTHOR, author);
         contentValues.put(SQLUserDataHelper.KEY_TIME, timeStamp.getTime().getTime());
         contentValues.put(SQLUserDataHelper.KEY_MSG, msg);
 
         SQLiteDatabase dataBase = helper.getWritableDatabase();
-        dataBase.insert(SQLUserInfoHelper.TABLE_NAME, null, contentValues);
+        dataBase.insert(helper.TABLE_NAME, null, contentValues);
         dataBase.close();
     }
 
@@ -47,14 +46,28 @@ public class SQLUserData {
                     null, null, null, null, null);
             cursor.moveToLast();
         }
+        if (cursor.getPosition() == -1) {
+            db.close();
+            return res;
+        }
+        if (cursor.isLast()) {
+            Calendar calendar = new GregorianCalendar();
+            calendar.setTime(new Date(cursor.getInt(cursor.getColumnIndex(SQLUserDataHelper.KEY_TIME))));
+            res.add(new MessageItem(cursor.getString(cursor.getColumnIndex(SQLUserDataHelper.KEY_AUTHOR)),
+                    cursor.getString(cursor.getColumnIndex(SQLUserDataHelper.KEY_MSG)),
+                    calendar));
+            db.close();
+            return res;
+        }
         int i = 0;
-        while (!cursor.isFirst() && cursor.getPosition() == 0) {
+        while (!cursor.isFirst()) {
             if (i == numRows) {
                 break;
             }
             Calendar calendar = new GregorianCalendar();
             calendar.setTime(new Date(cursor.getInt(cursor.getColumnIndex(SQLUserDataHelper.KEY_TIME))));
-            res.add(new MessageItem(userId, cursor.getString(cursor.getColumnIndex(SQLUserDataHelper.KEY_MSG)),
+            res.add(new MessageItem(cursor.getString(cursor.getColumnIndex(SQLUserDataHelper.KEY_AUTHOR)),
+                    cursor.getString(cursor.getColumnIndex(SQLUserDataHelper.KEY_MSG)),
                     calendar));
             i++;
             cursor.moveToPrevious();
@@ -74,6 +87,7 @@ class SQLUserDataHelper extends SQLiteOpenHelper {
     public static final String DATABASE_NAME = "USERS_MSGS";
     public String TABLE_NAME;
     public static final String KEY_ID = "_id";
+    public static final String KEY_AUTHOR = "author";
     public static final String KEY_TIME = "time";
     public static final String KEY_MSG = "msg";
 
@@ -85,13 +99,17 @@ class SQLUserDataHelper extends SQLiteOpenHelper {
 
     @Override
     public void onOpen(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (" + KEY_ID + " INTEGER PRIMARY KEY," + KEY_TIME + " INTEGER,"
+        db.execSQL("CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (" + KEY_ID + " INTEGER PRIMARY KEY,"
+                + KEY_AUTHOR + " TEXT,"
+                + KEY_TIME + " INTEGER,"
                 + KEY_MSG + " TEXT);");
     }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE" + TABLE_NAME + " (" + KEY_ID + " INTEGER PRIMARY KEY," + KEY_TIME + " INTEGER,"
+        db.execSQL("CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (" + KEY_ID + " INTEGER PRIMARY KEY,"
+                + KEY_AUTHOR + " TEXT,"
+                + KEY_TIME + " INTEGER,"
                 + KEY_MSG + " TEXT);");
     }
 
