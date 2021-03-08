@@ -1,10 +1,10 @@
 package com.example.p2pchat;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
@@ -12,17 +12,15 @@ import android.widget.Toast;
 
 import com.example.p2pchat.dataTools.SQLUserData;
 import com.example.p2pchat.ui.chat.MessageItem;
-import com.example.p2pchat.ui.chat.RecyclerViewAdapter;
-import com.example.p2pchat.ui.chat.RecyclerViewAdapter;
+import com.example.p2pchat.ui.chat.ChatRecyclerViewAdapter;
 
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.GregorianCalendar;
 
 public class ChatActivity extends AppCompatActivity {
-    private RecyclerViewAdapter recyclerViewAdapter;
+    private ChatRecyclerViewAdapter chatRecyclerViewAdapter;
     private ArrayList<MessageItem> mMessages;
     private SQLUserData sqlUserData;
     static private final int NUM_LOAD_ROWS = 50;
@@ -45,7 +43,12 @@ public class ChatActivity extends AppCompatActivity {
         mMessages = sqlUserData.loadLastMsg(NUM_LOAD_ROWS);
 
         RecyclerView recyclerView = findViewById(R.id.recyclerView);
-        recyclerViewAdapter = new RecyclerViewAdapter(this, mMessages);
+        chatRecyclerViewAdapter = new ChatRecyclerViewAdapter(this, mMessages);
+        recyclerView.setAdapter(chatRecyclerViewAdapter);
+        LinearLayoutManager lm = new LinearLayoutManager(this);
+        lm.setStackFromEnd(true);
+        recyclerView.setLayoutManager(lm);
+
     }
 
     @Override
@@ -64,8 +67,7 @@ public class ChatActivity extends AppCompatActivity {
         }
 
         Calendar currentTime = new GregorianCalendar();
-        recyclerViewAdapter.addItem(new MessageItem(userName, message, currentTime));
-        sqlUserData.insert(currentTime, message);
+        chatRecyclerViewAdapter.addItem(new MessageItem(userName, message, currentTime));
+        sqlUserData.insert(userName ,currentTime, message);
     }
-
 }

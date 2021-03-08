@@ -16,12 +16,12 @@ import java.util.ArrayList;
 
 import com.example.p2pchat.R;
 
-public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.MyViewHolder> {
+public class ChatRecyclerViewAdapter extends RecyclerView.Adapter<ChatRecyclerViewAdapter.MyViewHolder> {
 
     ArrayList<MessageItem> messageItems;
     Context context;
 
-    public RecyclerViewAdapter (Context ct, ArrayList<MessageItem> items) {
+    public ChatRecyclerViewAdapter(Context ct, ArrayList<MessageItem> items) {
         context = ct;
         messageItems = items;
     }
@@ -41,8 +41,8 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         SpannableString ss=new SpannableString(name);
         ss.setSpan(new UnderlineSpan(), 0, name.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 
-        holder.fromName.setText(ss);
-        holder.message.setText(messageItems.get(position).getMessage());;
+        holder.fromName.setText(messageItems.get(position).getName());
+        holder.message.setText(messageItems.get(position).getMessage());
         holder.timeStamp.setText(messageItems.get(position).getTimeHoursMinutes());
     }
 
