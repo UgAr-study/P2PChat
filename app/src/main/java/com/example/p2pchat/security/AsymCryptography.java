@@ -1,6 +1,7 @@
 package com.example.p2pchat.security;
 
 import android.content.SharedPreferences;
+import android.util.Log;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -21,6 +22,7 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.RSAPrivateKeySpec;
+import java.security.spec.RSAPublicKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
@@ -32,8 +34,21 @@ public class AsymCryptography {
     public final static String KEY_STORE_NAME = "keyStrore";
     private final static String PRIVATE_KEY = "Private_Key";
     private PrivateKey privateKey = null;
+    private PublicKey publicKey = null;
 
-    static public PublicKey generateNewPair(String pwd, SharedPreferences keyStore) {
+    public AsymCryptography() {
+        try {
+            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+            keyPairGenerator.initialize(4096);
+            KeyPair keyPair = keyPairGenerator.generateKeyPair();
+            privateKey = keyPair.getPrivate();
+            publicKey = keyPair.getPublic();
+        } catch (Exception e) {
+            return;
+        }
+    }
+
+    static public PublicKey generateAndSaveNewPair(String pwd, SharedPreferences keyStore) {
         try {
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
             keyPairGenerator.initialize(4096);
@@ -91,18 +106,36 @@ public class AsymCryptography {
         return new BigInteger(modulusStr);
     }
 
-    public void loadPrivateKey(String pwd, SharedPreferences keyStore) throws NoSuchPaddingException, InvalidKeySpecException, NoSuchAlgorithmException, IOException, BadPaddingException, IllegalBlockSizeException, InvalidKeyException, ClassNotFoundException {
-        String encryptKeyData = keyStore.getString(PRIVATE_KEY, null);
-        String keyData = SymCryptography.decryptByPwdGson(encryptKeyData, pwd);
+    //*Load private key
+    public AsymCryptography(String pwd, SharedPreferences keyStore) {
+        try {
+            String encryptKeyData = keyStore.getString(PRIVATE_KEY, null);
+            String keyData = SymCryptography.decryptByPwdGson(encryptKeyData, pwd);
 
-        BigInteger modulus = readModulusFromString(keyData);
-        BigInteger prExponent = readExponentFromString(keyData);
-        RSAPrivateKeySpec privateSpec = new RSAPrivateKeySpec(modulus, prExponent);
-        KeyFactory factory = KeyFactory.getInstance("RSA");
-        privateKey = factory.generatePrivate(privateSpec);
+            BigInteger modulus = readModulusFromString(keyData);
+            BigInteger prExponent = readExponentFromString(keyData);
+            RSAPrivateKeySpec privateSpec = new RSAPrivateKeySpec(modulus, prExponent);
+            KeyFactory factory = KeyFactory.getInstance("RSA");
+            privateKey = factory.generatePrivate(privateSpec);
+        } catch (Exception e) {
+            privateKey = null;
+            publicKey = null;
+            return;
+        }
     }
 
     static public SealedObject encryptMsg(String msg, PublicKey publicKey) {
+        try {
+            Cipher encrypt=Cipher.getInstance("RSA");
+            encrypt.init(Cipher.ENCRYPT_MODE, publicKey);
+            return new SealedObject( msg, encrypt);
+        }
+        catch (NoSuchPaddingException | NoSuchAlgorithmException | IllegalBlockSizeException | IOException | InvalidKeyException e) {
+            return null;
+        }
+    }
+
+    public SealedObject encryptMsg(String msg) {
         try {
             Cipher encrypt=Cipher.getInstance("RSA");
             encrypt.init(Cipher.ENCRYPT_MODE, publicKey);
@@ -121,6 +154,22 @@ public class AsymCryptography {
         }
 
         catch (Exception e) {
+            return null;
+        }
+    }
+
+
+    //TODO: need debug and tests
+    static PublicKey getPublicKeyFromPrivateKey(PrivateKey privateKey) {
+        try {
+            KeyFactory kf = KeyFactory.getInstance("RSA");
+            RSAPrivateKeySpec priv = kf.getKeySpec(privateKey, RSAPrivateKeySpec.class);
+
+            RSAPublicKeySpec keySpec = new RSAPublicKeySpec(priv.getModulus(), BigInteger.valueOf(65537));
+
+            return kf.generatePublic(keySpec);
+        } catch (Exception e) {
+            Log.d("myTagSecure", "getPublicKeyFromPrivateKey fall");
             return null;
         }
     }

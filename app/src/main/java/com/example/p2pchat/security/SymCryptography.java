@@ -47,7 +47,7 @@ public class SymCryptography {
         return new SealedObject(msg, cipher);
     }
 
-    static public SealedObject encryptMsg(String msg, SecretKey key) {
+    static public SealedObject encryptMsg(SecretKey key, String msg) {
         try {
             Cipher cipher = Cipher.getInstance("AES");
             cipher.init(Cipher.ENCRYPT_MODE, key);
@@ -57,7 +57,7 @@ public class SymCryptography {
         }
     }
 
-    static public String decryptMsg(SealedObject data, SecretKey key) throws NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, InvalidKeyException, IOException, ClassNotFoundException {
+    static public String decryptMsg(SecretKey key, SealedObject data) throws NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, InvalidKeyException, IOException, ClassNotFoundException {
         Cipher cipher = Cipher.getInstance("AES");
         cipher.init(Cipher.DECRYPT_MODE, key);
         return data.getObject(cipher).toString();
