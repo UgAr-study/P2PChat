@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import io.reactivex.rxjava3.core.Observable;
 
@@ -22,27 +24,33 @@ public class MCReceiver {
     private String myName;
     private String myPublicKey;
     private InetAddress group;
+    private byte[] buffer;
+    private ArrayList<String> requestMsg;
 
     private Observable<UserInfo> observable;
 
     public MCReceiver (SQLUserInfo sqlUserInfo) {
+
         UserInfoTable = sqlUserInfo;
         myName = UserInfoTable.getNameById(String.valueOf(1)).get(0);
         myPublicKey = UserInfoTable.getPublicKeyById(String.valueOf(1)).get(0);
 
+        buffer = new byte[8192];
+
         observable = Observable.create(emmit -> {
 
-            while (true) {
+            try {
+                Connect();
 
-                try {
-                    Connect();
-                    ReceiveMessage();
-                    ParseMessage();
-                } catch (Exception e) {
-                    Close();
-                    emmit.onError(e);
-                    break;
+                while (true) {
+                    requestMsg = ReceiveMessage();
+                    ParseMessage(requestMsg);
+                    emmit.onNext(item);
                 }
+
+            } catch (Exception e) {
+                Close();
+                emmit.onError(e);
             }
         });
     }
@@ -51,16 +59,33 @@ public class MCReceiver {
         return observable;
     }
 
-    private void Connect() {
-
+    private void Connect() throws IOException {
+        socket = new MulticastSocket(port);
+        group = InetAddress.getByName(ip);
+        socket.joinGroup(group);
     }
 
-    private void ReceiveMessage() {
+    private ArrayList<String> ReceiveMessage() throws IOException {
+        DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+        socket.receive(packet);
 
+        String receivedMsg = new String(packet.getData(), 0, packet.getLength());
+        String senderIpAddress = packet.getAddress().toString().substring(1);
+
+        ArrayList<String> res = new ArrayList<>(Arrays.asList(receivedMsg.split("\n")));
+        res.add(senderIpAddress);
+        return res;
     }
 
-    private void ParseMessage() {
+    private void ParseMessage(String[] requestMsg) {
 
+        if (requestMsg.length == 4) {
+
+            String toPublicKey = requestMsg[0];
+            String fromName = requestMsg[1];
+            String fromPublicKey = requestMsg[2];
+            String senderIpAddress = requestMsg[3];
+        }
     }
 
     private void Close() {
@@ -117,19 +142,20 @@ class UserInfo {
 
 class MultiCastReceiver extends Thread {
 
-    protected MulticastSocket socket;
-    protected final int port = 1234;
-    protected String ip = "229.1.2.3";
-    protected SQLUserInfo sqlTable;
-    protected String myName;
-    protected String myPublicKey;
-    InetAddress group;
-    private Handler mHandler;
 
+    private final int port = 1234;
     private final int ERROR = 1;
     private final int SUCCESS = 0;
+    private final String ip = "229.1.2.3";
     private final String KEY_DATA = "Data";
     private final String KEY_ERROR = "ErrorMsg";
+
+    private MulticastSocket socket;
+    private SQLUserInfo sqlTable;
+    private String myName;
+    private String myPublicKey;
+    private InetAddress group;
+    private Handler mHandler;
 
     public MultiCastReceiver(SQLUserInfo tableInput, Handler handler) {
         sqlTable    = tableInput;

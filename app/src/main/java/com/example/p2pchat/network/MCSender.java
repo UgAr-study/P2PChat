@@ -7,59 +7,53 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Observable;
 
 public class MCSender {
 
-    private static DatagramSocket socket;
-    private static InetAddress inetAddress;
-    private static String ToPublicKye, FromName, FromPublicKye;
-    private static final int port = 1234;
-    private final int PERIOD_MS = 3000;
+    private final int port = 1234;
+    private final String host = "229.1.2.3";
 
-    private Observable<Boolean> observable;
+
+    private DatagramSocket socket;
+    private InetAddress inetAddress;
+    private byte[] helloMessage;
+
+    private Completable observable;
 
     public MCSender (String toPublicKye, String fromPublicKye, String fromName) {
 
-        ToPublicKye = toPublicKye;
-        FromPublicKye = fromPublicKye;
-        FromName = fromName;
+        helloMessage = (toPublicKye + "\n" + fromName + "\n" + fromPublicKye).getBytes();
 
-        observable = Observable.create(emmit -> {
-
-            while (true) {
+        observable = Completable.create(emmit -> {
                 try {
                     Connect();
                     SendMCMessage();
                     Close();
-                    emmit.onNext(true);
-                    Sleep();
+                    emmit.onComplete();
                 } catch (Exception e) {
                     emmit.onError(e);
-                    break;
                 }
-            }
         });
     }
 
-    public Observable<Boolean> getObservable() {
+    public Completable getObservable() {
         return observable;
     }
 
-    private void Connect() {
-
+    private void Connect() throws SocketException, UnknownHostException {
+        socket = new DatagramSocket();
+        inetAddress = InetAddress.getByName(host);
     }
 
-    private void SendMCMessage() {
-
+    private void SendMCMessage() throws IOException {
+        DatagramPacket packet = new DatagramPacket(helloMessage, helloMessage.length, inetAddress, port);
+        socket.send(packet);
     }
 
     private void Close() {
-
-    }
-
-    private void Sleep() {
-
+        socket.close();
     }
 }
 
@@ -72,7 +66,7 @@ public class MCSender {
 
 
 ///////////////////////////////////////
-class MultiCastSender extends Thread{
+/*class MultiCastSender extends Thread{
 
     private static DatagramSocket socket;
     private static InetAddress inetAddress;
@@ -123,5 +117,5 @@ class MultiCastSender extends Thread{
         socket.close();
     }
 
-}
+}*/
 
