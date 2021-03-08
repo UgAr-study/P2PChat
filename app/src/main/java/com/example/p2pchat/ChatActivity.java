@@ -6,6 +6,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -48,7 +49,6 @@ public class ChatActivity extends AppCompatActivity {
         LinearLayoutManager lm = new LinearLayoutManager(this);
         lm.setStackFromEnd(true);
         recyclerView.setLayoutManager(lm);
-
     }
 
     @Override
@@ -69,5 +69,6 @@ public class ChatActivity extends AppCompatActivity {
         Calendar currentTime = new GregorianCalendar();
         chatRecyclerViewAdapter.addItem(new MessageItem(userName, message, currentTime));
         sqlUserData.insert(userName ,currentTime, message);
+        Log.d("myLogsChatActivity", "Msg saved");
     }
 }

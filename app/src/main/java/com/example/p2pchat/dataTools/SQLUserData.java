@@ -28,7 +28,6 @@ public class SQLUserData {
 
     public void insert(String author ,Calendar timeStamp, String msg) {
         ContentValues contentValues = new ContentValues();
-
         contentValues.put(SQLUserDataHelper.KEY_AUTHOR, author);
         contentValues.put(SQLUserDataHelper.KEY_TIME, timeStamp.getTime().getTime());
         contentValues.put(SQLUserDataHelper.KEY_MSG, msg);
@@ -50,7 +49,7 @@ public class SQLUserData {
             db.close();
             return res;
         }
-        if (cursor.isLast()) {
+        if (cursor.isFirst()) {
             Calendar calendar = new GregorianCalendar();
             calendar.setTime(new Date(cursor.getInt(cursor.getColumnIndex(SQLUserDataHelper.KEY_TIME))));
             res.add(new MessageItem(cursor.getString(cursor.getColumnIndex(SQLUserDataHelper.KEY_AUTHOR)),
@@ -59,8 +58,13 @@ public class SQLUserData {
             db.close();
             return res;
         }
+        if (cursor.getPosition() > numRows) {
+            cursor.moveToPosition(cursor.getPosition() - numRows);
+        } else {
+            cursor.moveToFirst();
+        }
         int i = 0;
-        while (!cursor.isFirst()) {
+        while (!cursor.isAfterLast()) {
             if (i == numRows) {
                 break;
             }
@@ -70,7 +74,7 @@ public class SQLUserData {
                     cursor.getString(cursor.getColumnIndex(SQLUserDataHelper.KEY_MSG)),
                     calendar));
             i++;
-            cursor.moveToPrevious();
+            cursor.moveToNext();
         }
         db.close();
         return res;
