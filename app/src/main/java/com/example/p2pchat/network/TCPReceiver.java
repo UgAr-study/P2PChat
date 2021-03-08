@@ -5,6 +5,9 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.util.Pair;
+
+import androidx.cardview.widget.CardView;
 
 import com.example.p2pchat.dataTools.SQLUserData;
 import com.example.p2pchat.dataTools.SQLUserInfo;
@@ -19,7 +22,13 @@ import java.net.Socket;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.Locale;
 import java.util.Objects;
 
 import javax.crypto.BadPaddingException;
@@ -32,65 +41,97 @@ import io.reactivex.rxjava3.internal.operators.observable.ObservableReduceMaybe;
 
 public class TCPReceiver {
 
+    private final int port = 4000;
+
+    private String userPassword;
+    private String encryptedMessage; //TODO: change to Pair <SealObject, PublicKey>
+
     private Socket socket;
     private ServerSocket serverSocket;
-    private final int port = 4000;
-    private Handler mHandler;
+    private ObjectInputStream inputStream;
+
     private SQLUserInfo UserInfoTable;
     private SQLUserData UserDataTable;
-    private String userPassword;
+
     private SharedPreferences userKeyStore;
 
     private Observable<MessageItem> observable;
 
-    public TCPReceiver(SQLUserInfo userInfoTable, SQLUserData userDataTable, String password, SharedPreferences keyStore) {
-        UserDataTable = userDataTable;
+    public TCPReceiver(SQLUserInfo userInfoTable,
+                       SQLUserData userDataTable,
+                       String password,
+                       SharedPreferences keyStore) {
+
         UserInfoTable = userInfoTable;
+        UserDataTable = userDataTable;
         userPassword = password;
         userKeyStore = keyStore;
 
         observable = Observable.create(emmit -> {
 
-            serverSocket = new ServerSocket(port);
-            while (true) {
+            try {
+                CreateSocket();
 
-                try {
+                while (true) {
                     Connect();
-                    ReceiveMessage();
-                    MessageItem item = ParseMessage();
-                    emmit.onNext(item);
+                    String[] rcvMessage = ReceiveMessage();
+                    MessageItem item = ParseMessage(rcvMessage);
                     CloseSocket();
 
-                } catch (Exception e) {
-                    emmit.onError(e);
-                    CloseAll();
-                    break;
+                    if (item != null)
+                        emmit.onNext(item);
                 }
+
+            } catch (Exception e) {
+                CloseAll();
+                emmit.onError(e);
             }
         });
     }
 
-    private void Connect() {
-
+    private void CreateSocket() throws IOException {
+        serverSocket = new ServerSocket(port);
     }
 
-    private void ReceiveMessage() {
-
+    private void Connect() throws IOException {
+        socket = serverSocket.accept();
+        inputStream = new ObjectInputStream(socket.getInputStream());
     }
 
-    private MessageItem ParseMessage() {
-        return null;
+    private String[] ReceiveMessage() throws IOException, ClassNotFoundException {
+        encryptedMessage = (String) inputStream.readObject();
+        return DecryptMessage(encryptedMessage).split("\n"); //TODO: change to: String[] {DecryptMessage(encMsg), pubKey}
     }
 
-    private void CloseSocket() {
+    private MessageItem ParseMessage(String[] rcvMessage) {
 
+        if (rcvMessage.length != 2)
+            return null;
+
+        String message = rcvMessage[0];
+        String fromPublicKey = rcvMessage[1];
+        String name = UserInfoTable.getNameByPublicKey(fromPublicKey).get(0);
+        Calendar time = getCurrentTime();
+
+        return new MessageItem(name, message, time);
     }
 
-    private void CloseAll () {
-
+    private void CloseSocket() throws IOException {
+        socket.close();
     }
 
+    private void CloseAll () throws IOException {
+        socket.close();
+        serverSocket.close();
+    }
 
+    private String DecryptMessage(String encryptedMessage) { //TODO: change it to right decryption
+        return encryptedMessage;
+    }
+
+    private Calendar getCurrentTime() {
+        return new GregorianCalendar();
+    }
 }
 
 
@@ -101,7 +142,7 @@ public class TCPReceiver {
 
 
 ////////////////////////////////////////////////////
-class TCPReceiverE extends Thread {
+/*class TCPReceiverE extends Thread {
 
     private Socket socket;
     private ServerSocket serverSocket;
@@ -208,4 +249,4 @@ class TCPReceiverE extends Thread {
         }
         return as;
     }
-}
+}*/

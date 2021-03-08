@@ -15,30 +15,56 @@ import io.reactivex.rxjava3.core.Completable;
 public class TCPSender {
 
     private final int serverPort = 4000;
-    private Socket socket;
-    private ObjectOutputStream out;
+    private final int TIME_OUT = 1000;
 
+    private Socket socket;
+    private String ipAddress;
+    private String message;
+    private String myPublicKey;
+
+    private ObjectOutputStream out;
     private Completable observable;
 
-    public TCPSender() {
+    public TCPSender(String recipientMessage, String recipientIpAddress, String userPublicKey) {
+
+        message = recipientMessage;
+        ipAddress = recipientIpAddress;
+        myPublicKey = userPublicKey;
+
         observable = Completable.create(emmit -> {
             try {
+                Connect();
                 SendMessage();
                 Close();
                 emmit.onComplete();
             } catch (Exception e) {
-                emmit.onError(e);
                 Close();
+                emmit.onError(e);
             }
         });
     }
 
-    private void SendMessage() {
-
+    public Completable getObservable() {
+        return observable;
     }
 
-    private void Close() {
+    private void Connect() throws IOException {
 
+        InetAddress ipAddr = InetAddress.getByName(ipAddress);
+        socket = new Socket();
+        socket.connect(new InetSocketAddress(ipAddr, serverPort), TIME_OUT);
+        out = new ObjectOutputStream(socket.getOutputStream());
+    }
+
+    private void SendMessage() throws IOException { //TODO: implement cryptography
+        String outMessage = message + "\n" + myPublicKey;
+        out.writeUTF(outMessage);
+        out.flush();
+    }
+
+    private void Close() throws IOException {
+        out.close();
+        socket.close();
     }
 }
 
@@ -50,13 +76,14 @@ public class TCPSender {
 
 //////////////////////////////////////////
 
-class Messenger {
+/*class Messenger {
 
     private final int serverPort = 4000;
     private Socket socket;
     private ObjectOutputStream out;
 
     public boolean SendMessageToIp (String message, String ipAddress) {
+
         try {
             InetAddress ipAddr = InetAddress.getByName(ipAddress);
 
@@ -101,4 +128,4 @@ class Messenger {
             //do nothing
         }
     }
-}
+}*/

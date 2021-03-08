@@ -14,22 +14,28 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.ObservableEmitter;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class MCReceiver {
 
-    private MulticastSocket socket;
     private final int port = 1234;
-    private String ip = "229.1.2.3";
-    private SQLUserInfo UserInfoTable;
+    private final String ip = "229.1.2.3";
+
     private String myName;
     private String myPublicKey;
-    private InetAddress group;
     private byte[] buffer;
     private ArrayList<String> requestMsg;
 
+    private SQLUserInfo UserInfoTable;
+
+    private MulticastSocket socket;
+    private InetAddress group;
+
+    private UserInfo userInfo;
     private Observable<UserInfo> observable;
 
-    public MCReceiver (SQLUserInfo sqlUserInfo) {
+    public MCReceiver (SQLUserInfo sqlUserInfo) { //TODO: pass myName & myPublicKey to constructor
 
         UserInfoTable = sqlUserInfo;
         myName = UserInfoTable.getNameById(String.valueOf(1)).get(0);
@@ -44,8 +50,8 @@ public class MCReceiver {
 
                 while (true) {
                     requestMsg = ReceiveMessage();
-                    ParseMessage(requestMsg);
-                    emmit.onNext(item);
+                    userInfo = ParseMessage(requestMsg);
+                    emmit.onNext(userInfo);
                 }
 
             } catch (Exception e) {
@@ -77,19 +83,49 @@ public class MCReceiver {
         return res;
     }
 
-    private void ParseMessage(String[] requestMsg) {
+    private UserInfo ParseMessage(ArrayList<String> requestMsg) {
 
-        if (requestMsg.length == 4) {
-
-            String toPublicKey = requestMsg[0];
-            String fromName = requestMsg[1];
-            String fromPublicKey = requestMsg[2];
-            String senderIpAddress = requestMsg[3];
+        if (requestMsg.size() != 4) {
+            return null;
         }
+
+        String toPublicKey     = requestMsg.get(0);
+        String fromName        = requestMsg.get(1);
+        String fromPublicKey   = requestMsg.get(2);
+        String senderIpAddress = requestMsg.get(3);
+
+        userInfo = new UserInfo(fromName, fromPublicKey, senderIpAddress);
+
+        if (toPublicKey.equals("all")) {
+
+            if (fromPublicKey.equals(myPublicKey))
+                return null;
+
+            if (UserInfoTable.getNameByPublicKey(fromPublicKey).isEmpty()) { //TODO: implement isInTable(pubKey) method in SQLUserInfo class
+                UserInfoTable.WriteDB(fromName, senderIpAddress, fromPublicKey);
+                userInfo.setIsNewStatus(true);
+            }
+
+            SendResponse(fromPublicKey);
+
+
+        } else if (toPublicKey.equals(myPublicKey) && UserInfoTable.getNameByPublicKey(fromPublicKey).isEmpty()) {
+            UserInfoTable.WriteDB(fromName, senderIpAddress, fromPublicKey);
+            userInfo.setIsNewStatus(true);
+        }
+
+        return userInfo;
     }
 
     private void Close() {
+        socket.close();
+    }
 
+    private void SendResponse(String fromPublicKey) {
+        MCSender sender = new MCSender(fromPublicKey, myPublicKey, myName);
+        sender.getObservable()
+                .subscribeOn(Schedulers.newThread())
+                .subscribe();
     }
 }
 
@@ -98,11 +134,13 @@ class UserInfo {
     private String name;
     private String publicKey;
     private String ipAddress;
+    private boolean isNew;
 
     public UserInfo (String name, String publicKey, String ipAddress) {
-        this.name = name;
+        this.name      = name;
         this.publicKey = publicKey;
         this.ipAddress = ipAddress;
+        isNew = false;
     }
 
     public String getName() {
@@ -115,6 +153,14 @@ class UserInfo {
 
     public String getIpAddress() {
         return ipAddress;
+    }
+
+    public boolean isNew() {
+        return isNew;
+    }
+
+    public void setIsNewStatus(boolean status) {
+        isNew = status;
     }
 }
 
@@ -140,7 +186,7 @@ class UserInfo {
 
 ////////////////////////////////////////////
 
-class MultiCastReceiver extends Thread {
+/*class MultiCastReceiver extends Thread {
 
 
     private final int port = 1234;
@@ -271,7 +317,7 @@ class MultiCastReceiver extends Thread {
     public void close() {
         socket.close();
     }
-}
+}*/
 
 
 
