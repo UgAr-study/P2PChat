@@ -36,8 +36,12 @@ public class MessageItem {
 
     //*Return time in format hh:mm
     public String getTimeHoursMinutes() {
-        return date.get(Calendar.HOUR_OF_DAY) + ":"
-                + date.get(Calendar.MINUTE);
+        String hours = Integer.toString(date.get(Calendar.HOUR_OF_DAY));
+        String minutes = Integer.toString(date.get(Calendar.MINUTE));
+        if (minutes.length() == 1) {
+            minutes = "0" + minutes;
+        }
+        return hours + ":" + minutes;
     }
 
     //*Return time in format dd/mm/yyyy
@@ -68,4 +72,6 @@ public class MessageItem {
     public int getYear() {
         return date.get(Calendar.YEAR);
     }
+
+    public int getHours() { return date.get(Calendar.HOUR_OF_DAY);}
 }

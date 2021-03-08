@@ -6,6 +6,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -18,6 +19,7 @@ import com.example.p2pchat.ui.chat.ChatRecyclerViewAdapter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.TimeZone;
 
 public class ChatActivity extends AppCompatActivity {
     private ChatRecyclerViewAdapter chatRecyclerViewAdapter;
@@ -48,7 +50,6 @@ public class ChatActivity extends AppCompatActivity {
         LinearLayoutManager lm = new LinearLayoutManager(this);
         lm.setStackFromEnd(true);
         recyclerView.setLayoutManager(lm);
-
     }
 
     @Override
@@ -66,8 +67,9 @@ public class ChatActivity extends AppCompatActivity {
             return;
         }
 
-        Calendar currentTime = new GregorianCalendar();
+        Calendar currentTime = new GregorianCalendar(TimeZone.getDefault());
         chatRecyclerViewAdapter.addItem(new MessageItem(userName, message, currentTime));
-        sqlUserData.insert(userName ,currentTime, message);
+        sqlUserData.insert(userName , currentTime, message);
+        Log.d("myLogsChatActivity", "Msg saved");
     }
 }
