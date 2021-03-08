@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.TimeZone;
 
 public class SQLUserData {
     SQLUserDataHelper helper;
@@ -29,7 +30,7 @@ public class SQLUserData {
     public void insert(String author ,Calendar timeStamp, String msg) {
         ContentValues contentValues = new ContentValues();
         contentValues.put(SQLUserDataHelper.KEY_AUTHOR, author);
-        contentValues.put(SQLUserDataHelper.KEY_TIME, timeStamp.getTime().getTime());
+        contentValues.put(SQLUserDataHelper.KEY_TIME, timeStamp.getTimeInMillis());
         contentValues.put(SQLUserDataHelper.KEY_MSG, msg);
 
         SQLiteDatabase dataBase = helper.getWritableDatabase();
@@ -50,8 +51,9 @@ public class SQLUserData {
             return res;
         }
         if (cursor.isFirst()) {
-            Calendar calendar = new GregorianCalendar();
-            calendar.setTime(new Date(cursor.getInt(cursor.getColumnIndex(SQLUserDataHelper.KEY_TIME))));
+            Calendar calendar = new GregorianCalendar(TimeZone.getDefault());
+            calendar.setTimeInMillis(cursor.getLong(cursor.getColumnIndex(SQLUserDataHelper.KEY_TIME)));
+            calendar.setTimeZone(TimeZone.getDefault());
             res.add(new MessageItem(cursor.getString(cursor.getColumnIndex(SQLUserDataHelper.KEY_AUTHOR)),
                     cursor.getString(cursor.getColumnIndex(SQLUserDataHelper.KEY_MSG)),
                     calendar));
@@ -59,7 +61,7 @@ public class SQLUserData {
             return res;
         }
         if (cursor.getPosition() > numRows) {
-            cursor.moveToPosition(cursor.getPosition() - numRows);
+            cursor.moveToPosition(cursor.getPosition() - numRows + 1);
         } else {
             cursor.moveToFirst();
         }
@@ -68,8 +70,8 @@ public class SQLUserData {
             if (i == numRows) {
                 break;
             }
-            Calendar calendar = new GregorianCalendar();
-            calendar.setTime(new Date(cursor.getInt(cursor.getColumnIndex(SQLUserDataHelper.KEY_TIME))));
+            Calendar calendar = new GregorianCalendar(TimeZone.getDefault());
+            calendar.setTimeInMillis(cursor.getLong(cursor.getColumnIndex(SQLUserDataHelper.KEY_TIME)));
             res.add(new MessageItem(cursor.getString(cursor.getColumnIndex(SQLUserDataHelper.KEY_AUTHOR)),
                     cursor.getString(cursor.getColumnIndex(SQLUserDataHelper.KEY_MSG)),
                     calendar));
@@ -94,7 +96,6 @@ class SQLUserDataHelper extends SQLiteOpenHelper {
     public static final String KEY_AUTHOR = "author";
     public static final String KEY_TIME = "time";
     public static final String KEY_MSG = "msg";
-
 
     public SQLUserDataHelper(@Nullable Context context, String id) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);

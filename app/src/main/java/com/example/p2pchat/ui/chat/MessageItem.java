@@ -38,6 +38,9 @@ public class MessageItem {
     public String getTimeHoursMinutes() {
         String hours = Integer.toString(date.get(Calendar.HOUR_OF_DAY));
         String minutes = Integer.toString(date.get(Calendar.MINUTE));
+        if (minutes.length() == 1) {
+            minutes = "0" + minutes;
+        }
         return hours + ":" + minutes;
     }
 
