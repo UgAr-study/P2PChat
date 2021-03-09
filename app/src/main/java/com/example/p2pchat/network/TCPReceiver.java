@@ -1,5 +1,6 @@
 package com.example.p2pchat.network;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
@@ -50,22 +51,22 @@ public class TCPReceiver {
     private ServerSocket serverSocket;
     private ObjectInputStream inputStream;
 
-    private SQLUserInfo UserInfoTable;
-    private SQLUserData UserDataTable;
+    private Context context;
 
+    private SQLUserInfo UserInfoTable;
     private SharedPreferences userKeyStore;
 
     private Observable<MessageItem> observable;
 
-    public TCPReceiver(SQLUserInfo userInfoTable,
-                       SQLUserData userDataTable,
+    public TCPReceiver(Context mainContext,
+                       SQLUserInfo userInfoTable,
                        String password,
                        SharedPreferences keyStore) {
 
+        context       = mainContext;
         UserInfoTable = userInfoTable;
-        UserDataTable = userDataTable;
-        userPassword = password;
-        userKeyStore = keyStore;
+        userPassword  = password;
+        userKeyStore  = keyStore;
 
         observable = Observable.create(emmit -> {
 
@@ -89,6 +90,10 @@ public class TCPReceiver {
         });
     }
 
+    public Observable<MessageItem> getObservable() {
+        return observable;
+    }
+
     private void CreateSocket() throws IOException {
         serverSocket = new ServerSocket(port);
     }
@@ -108,12 +113,14 @@ public class TCPReceiver {
         if (rcvMessage.length != 2)
             return null;
 
-        String message = rcvMessage[0];
+        String message       = rcvMessage[0];
         String fromPublicKey = rcvMessage[1];
-        String name = UserInfoTable.getNameByPublicKey(fromPublicKey).get(0);
-        Calendar time = getCurrentTime();
+        String name          = UserInfoTable.getNameByPublicKey(fromPublicKey).get(0);
+        Calendar time        = getCurrentTime();
 
-        return new MessageItem(name, message, time);
+        MessageItem item = new MessageItem(name, message, time);
+        addToDialogueTable(item, fromPublicKey);
+        return item;
     }
 
     private void CloseSocket() throws IOException {
@@ -131,6 +138,11 @@ public class TCPReceiver {
 
     private Calendar getCurrentTime() {
         return new GregorianCalendar();
+    }
+
+    private void addToDialogueTable(MessageItem item, String publicKye) {
+        String id = UserInfoTable.getIdByPublicKey(publicKye).get(0);
+        SQLUserData.insertByIdentifier(context, item, id);
     }
 }
 

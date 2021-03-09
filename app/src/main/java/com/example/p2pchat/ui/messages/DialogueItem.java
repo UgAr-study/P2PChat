@@ -3,7 +3,7 @@ package com.example.p2pchat.ui.messages;
 public class DialogueItem {
 
     private String userName;
-    private String lastTime;
+    private String lastTime; //TODO: may be change to Calendar?
     private String lastMessage;
     private String userPublicKey;
 
@@ -23,8 +23,9 @@ public class DialogueItem {
 
     public DialogueItem (String name, String time) {
         userName = name;
-        lastTime = time;
         lastMessage = new String("No messages yet");
+        lastTime = time;
+        userPublicKey = "No public key";
     }
 
     public String getName() {
