@@ -35,17 +35,18 @@ public class MCReceiver {
     private UserInfo userInfo;
     private Observable<UserInfo> observable;
 
-    public MCReceiver (SQLUserInfo sqlUserInfo) { //TODO: pass myName & myPublicKey to constructor
+    public MCReceiver (SQLUserInfo sqlUserInfo, String name, String publicKey) { //TODO: pass myName & myPublicKey to constructor
 
         UserInfoTable = sqlUserInfo;
-        myName = UserInfoTable.getNameById(String.valueOf(1)).get(0);
-        myPublicKey = UserInfoTable.getPublicKeyById(String.valueOf(1)).get(0);
+        myName = name;
+        myPublicKey = publicKey;
 
         buffer = new byte[8192];
 
         observable = Observable.create(emmit -> {
 
             try {
+                AddOwner();
                 Connect();
 
                 while (true) {
@@ -63,6 +64,11 @@ public class MCReceiver {
 
     public Observable<UserInfo> getObservable() {
         return observable;
+    }
+
+    private void AddOwner() {
+        String localIp = "127.0.0.1";
+        UserInfoTable.WriteDB(myName, localIp, myPublicKey);
     }
 
     private void Connect() throws IOException {

@@ -9,13 +9,10 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
-import com.example.p2pchat.dataTools.SQLUserData;
 import com.example.p2pchat.dataTools.SQLUserInfo;
 import com.example.p2pchat.network.Interrogator;
 import com.example.p2pchat.network.MCReceiver;
-import com.example.p2pchat.network.MCSender;
 import com.example.p2pchat.network.TCPReceiver;
-import com.example.p2pchat.network.TCPSender;
 import com.example.p2pchat.network.UserInfo;
 import com.example.p2pchat.security.AsymCryptography;
 import com.example.p2pchat.ui.chat.MessageItem;
@@ -30,9 +27,11 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
-import java.net.DatagramSocket;
+import java.util.concurrent.TimeUnit;
 
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.CompletableObserver;
 import io.reactivex.rxjava3.core.Observer;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
@@ -58,34 +57,18 @@ public class MainActivity extends AppCompatActivity implements DialoguesRecycler
     private HomeFragment homeFragment;
     private DashboardFragment dashboardFragment;
 
-    private boolean isMCSenderRun = false;
+    private boolean isMCInterrogatorRun = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Intent intent = getIntent();
-
-        userPublicKey = intent.getStringExtra(EXTRA_USER_PUBLIC_KEY);
-        userName      = intent.getStringExtra(EXTRA_USER_NAME);
-        userPassword  = intent.getStringExtra(EXTRA_USER_PASSWORD);
-
-        BottomNavigationView navView = findViewById(R.id.nav_view);
-
-        dialoguesFragment = DialoguesFragment.getDialoguesFragment(this, this);
-        homeFragment      = new HomeFragment();
-        dashboardFragment = new DashboardFragment();
-
-        navView.setOnNavigationItemSelectedListener(navListener);
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.fragment_container, homeFragment).commit();
-
-        UserInfoTable = new SQLUserInfo(this, USER_INFO_TABLE_NAME);
-
-        keyStore = getSharedPreferences(AsymCryptography.KEY_STORE_NAME, MODE_PRIVATE);
-        setOnClickTestButton();
+        getIntents();
+        defineFragments();
+        accessStorages();
         startNetwork();
+        setOnClickTestButton();
     }
 
     private BottomNavigationView.OnNavigationItemSelectedListener navListener =
@@ -116,6 +99,31 @@ public class MainActivity extends AppCompatActivity implements DialoguesRecycler
         }
     };
 
+    private void getIntents() {
+        Intent intent = getIntent();
+
+        userPublicKey = intent.getStringExtra(EXTRA_USER_PUBLIC_KEY);
+        userName      = intent.getStringExtra(EXTRA_USER_NAME);
+        userPassword  = intent.getStringExtra(EXTRA_USER_PASSWORD);
+    }
+
+    private void defineFragments() {
+        BottomNavigationView navView = findViewById(R.id.nav_view);
+
+        dialoguesFragment = DialoguesFragment.getDialoguesFragment(this, this);
+        homeFragment      = new HomeFragment();
+        dashboardFragment = new DashboardFragment();
+
+        navView.setOnNavigationItemSelectedListener(navListener);
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container, homeFragment).commit();
+    }
+
+    private void accessStorages() {
+        UserInfoTable = new SQLUserInfo(this, USER_INFO_TABLE_NAME);
+        keyStore = getSharedPreferences(AsymCryptography.KEY_STORE_NAME, MODE_PRIVATE);
+    }
+
     private static int test_count = 0;
     public void setOnClickTestButton() {
         Button test_btn = findViewById(R.id.test_button);
@@ -129,22 +137,16 @@ public class MainActivity extends AppCompatActivity implements DialoguesRecycler
         });
     }
 
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
 
-        //TODO: Save the fragment's instance
-        //getSupportFragmentManager().putFragment(outState, "myFragmentName", dialoguesFragment);
-    }
 
 
     private void startNetwork() {
         startMCReceiver();
-
+        startTCPReceiver();
     }
 
     private void startMCReceiver() {
-        MCReceiver mcReceiver = new MCReceiver(UserInfoTable);
+        MCReceiver mcReceiver = new MCReceiver(UserInfoTable, userName, userPublicKey);
         mcReceiver.getObservable()
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -169,6 +171,14 @@ public class MainActivity extends AppCompatActivity implements DialoguesRecycler
                 .subscribe(getTCPReceiverObserver());
     }
 
+    private void startDelay() {
+        Completable.complete()
+                .delaySubscription(3500, TimeUnit.MILLISECONDS)
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(getDelayObserver());
+    }
+
     private Observer<UserInfo> getMCReceiverObserver() {
         return new Observer<UserInfo>() {
             @Override
@@ -189,8 +199,8 @@ public class MainActivity extends AppCompatActivity implements DialoguesRecycler
                     //dialoguesFragment.onUpdateState(item.getPublicKey());
                 }
 
-                if (!isMCSenderRun) {
-                    isMCSenderRun = true;
+                if (!isMCInterrogatorRun) {
+                    isMCInterrogatorRun = true;
                     startInterrogator();
                 }
             }
@@ -246,21 +256,54 @@ public class MainActivity extends AppCompatActivity implements DialoguesRecycler
 
             @Override
             public void onNext(@io.reactivex.rxjava3.annotations.NonNull MessageItem messageItem) {
-
+                //TODO: how to update recycler view in ChatActivity?
             }
 
             @Override
             public void onError(@io.reactivex.rxjava3.annotations.NonNull Throwable e) {
-
+                Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
+                Log.e("MyTag", e.getMessage()); //TODO delete it
             }
 
             @Override
             public void onComplete() {
-
+                String text = "TCPReceiver has completed";
+                Toast.makeText(MainActivity.this, text, Toast.LENGTH_LONG).show();
+                Log.e("MyTag", text); //TODO delete it
             }
         };
     }
 
+    private CompletableObserver getDelayObserver() {
+        return new CompletableObserver() {
+            @Override
+            public void onSubscribe(@io.reactivex.rxjava3.annotations.NonNull Disposable d) {
+                //do nothing
+            }
+
+            @Override
+            public void onComplete() {
+                if (!isMCInterrogatorRun) {
+                    isMCInterrogatorRun = true;
+                    startInterrogator();
+                }
+            }
+
+            @Override
+            public void onError(@io.reactivex.rxjava3.annotations.NonNull Throwable e) {
+                Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
+                Log.e("MyTag", e.getMessage()); //TODO delete it
+            }
+        };
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        //TODO: Save the fragment's instance
+        //getSupportFragmentManager().putFragment(outState, "myFragmentName", dialoguesFragment);
+    }
 
     @Override
     public void onItemClick(DialogueItem item) {
