@@ -27,7 +27,7 @@ public class SQLUserData {
         cursor = null;
     }
 
-    static void insertByIdentifier(String identifierUser, MessageItem msgItem, Context context) {
+    static public void insertByIdentifier(String identifierUser, MessageItem msgItem, Context context) {
         SQLUserData db = new SQLUserData(context, identifierUser);
         db.insert(msgItem);
     }
