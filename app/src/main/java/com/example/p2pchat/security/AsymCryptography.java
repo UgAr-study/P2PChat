@@ -48,6 +48,25 @@ public class AsymCryptography {
         }
     }
 
+    //*Load private key
+    public AsymCryptography(String pwd, SharedPreferences keyStore) {
+        try {
+            String encryptKeyData = keyStore.getString(PRIVATE_KEY, null);
+            String keyData = SymCryptography.decryptByPwdGson(encryptKeyData, pwd);
+
+            BigInteger modulus = readModulusFromString(keyData);
+            BigInteger prExponent = readExponentFromString(keyData);
+            RSAPrivateKeySpec privateSpec = new RSAPrivateKeySpec(modulus, prExponent);
+            KeyFactory factory = KeyFactory.getInstance("RSA");
+            privateKey = factory.generatePrivate(privateSpec);
+            publicKey = getPublicKeyFromPrivateKey(privateKey);
+        } catch (Exception e) {
+            privateKey = null;
+            publicKey = null;
+            return;
+        }
+    }
+
     static public PublicKey generateAndSaveNewPair(String pwd, SharedPreferences keyStore) {
         try {
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
@@ -106,24 +125,6 @@ public class AsymCryptography {
         return new BigInteger(modulusStr);
     }
 
-    //*Load private key
-    public AsymCryptography(String pwd, SharedPreferences keyStore) {
-        try {
-            String encryptKeyData = keyStore.getString(PRIVATE_KEY, null);
-            String keyData = SymCryptography.decryptByPwdGson(encryptKeyData, pwd);
-
-            BigInteger modulus = readModulusFromString(keyData);
-            BigInteger prExponent = readExponentFromString(keyData);
-            RSAPrivateKeySpec privateSpec = new RSAPrivateKeySpec(modulus, prExponent);
-            KeyFactory factory = KeyFactory.getInstance("RSA");
-            privateKey = factory.generatePrivate(privateSpec);
-        } catch (Exception e) {
-            privateKey = null;
-            publicKey = null;
-            return;
-        }
-    }
-
     static public SealedObject encryptMsg(String msg, PublicKey publicKey) {
         try {
             Cipher encrypt=Cipher.getInstance("RSA");
@@ -158,8 +159,6 @@ public class AsymCryptography {
         }
     }
 
-
-    //TODO: need debug and tests
     static PublicKey getPublicKeyFromPrivateKey(PrivateKey privateKey) {
         try {
             KeyFactory kf = KeyFactory.getInstance("RSA");

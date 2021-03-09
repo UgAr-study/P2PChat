@@ -4,6 +4,12 @@ import android.renderscript.ScriptIntrinsicYuvToRGB;
 
 import org.junit.Test;
 
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+
 import javax.crypto.SealedObject;
 import javax.crypto.SecretKey;
 
@@ -58,6 +64,18 @@ public class SecureTests {
             SealedObject sealedObject = asymCryptography.encryptMsg(str);
             String res = asymCryptography.decryptMsg(sealedObject);
             assertEquals(res, str);
+        } catch (Exception e) {
+            assertTrue(false);
+        }
+    }
+
+    @Test
+    public void Test_GetPubKeyFromPrivKey() {
+        try {
+            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+            KeyPair keyPair = keyPairGenerator.generateKeyPair();
+            PublicKey publicKey = AsymCryptography.getPublicKeyFromPrivateKey(keyPair.getPrivate());
+            assertEquals(publicKey, keyPair.getPublic());
         } catch (Exception e) {
             assertTrue(false);
         }
