@@ -19,12 +19,12 @@ public class TCPSender {
 
     private Socket socket;
     private String ipAddress;
-    private String message;
+    private MessageObject message;
 
     private ObjectOutputStream out;
     private Completable observable;
 
-    public TCPSender(String recipientMessage, String recipientIpAddress) {
+    public TCPSender(MessageObject recipientMessage, String recipientIpAddress) {
 
         message = recipientMessage;
         ipAddress = recipientIpAddress;
@@ -55,7 +55,7 @@ public class TCPSender {
     }
 
     private void SendMessage() throws IOException { //TODO: implement cryptography
-        out.writeUTF(message);
+        out.writeObject(message);
         out.flush();
     }
 
