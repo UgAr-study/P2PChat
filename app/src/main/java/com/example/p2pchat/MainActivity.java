@@ -46,14 +46,12 @@ public class MainActivity extends AppCompatActivity implements DialoguesRecycler
     public static final String EXTRA_USER_TABLE_INFO = "user_info_table";
 
     private final String USER_INFO_TABLE_NAME = "UserInfoTable";
-    private final String USER_DATA_TABLE_NAME = "UserDataTable";
 
     private String userPublicKey;
     private String userName;
     private String userPassword;
 
     private SQLUserInfo UserInfoTable;
-    private SQLUserData UserDataTable;
     private SharedPreferences keyStore;
 
     private DialoguesFragment dialoguesFragment;
@@ -84,7 +82,6 @@ public class MainActivity extends AppCompatActivity implements DialoguesRecycler
                 .replace(R.id.fragment_container, homeFragment).commit();
 
         UserInfoTable = new SQLUserInfo(this, USER_INFO_TABLE_NAME);
-        UserDataTable = new SQLUserData(this, USER_DATA_TABLE_NAME); //TODO: wait for wrapper
 
         keyStore = getSharedPreferences(AsymCryptography.KEY_STORE_NAME, MODE_PRIVATE);
         setOnClickTestButton();

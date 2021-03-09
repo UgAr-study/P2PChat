@@ -20,16 +20,14 @@ public class TCPSender {
     private Socket socket;
     private String ipAddress;
     private String message;
-    private String myPublicKey;
 
     private ObjectOutputStream out;
     private Completable observable;
 
-    public TCPSender(String recipientMessage, String recipientIpAddress, String userPublicKey) {
+    public TCPSender(String recipientMessage, String recipientIpAddress) {
 
         message = recipientMessage;
         ipAddress = recipientIpAddress;
-        myPublicKey = userPublicKey;
 
         observable = Completable.create(emmit -> {
             try {
@@ -57,8 +55,7 @@ public class TCPSender {
     }
 
     private void SendMessage() throws IOException { //TODO: implement cryptography
-        String outMessage = message + "\n" + myPublicKey;
-        out.writeUTF(outMessage);
+        out.writeUTF(message);
         out.flush();
     }
 
