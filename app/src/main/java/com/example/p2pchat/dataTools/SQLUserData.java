@@ -27,6 +27,15 @@ public class SQLUserData {
         cursor = null;
     }
 
+    static void insertByIdentifier(String identifierUser, MessageItem msgItem, Context context) {
+        SQLUserData db = new SQLUserData(context, identifierUser);
+        db.insert(msgItem);
+    }
+
+    public void insert(MessageItem msgItem) {
+        insert(msgItem.getName(), msgItem.getTime(), msgItem.getMessage());
+    }
+
     public void insert(String author ,Calendar timeStamp, String msg) {
         ContentValues contentValues = new ContentValues();
         contentValues.put(SQLUserDataHelper.KEY_AUTHOR, author);
