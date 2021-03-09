@@ -142,7 +142,7 @@ public class TCPReceiver {
 
     private void addToDialogueTable(MessageItem item, String publicKye) {
         String id = UserInfoTable.getIdByPublicKey(publicKye).get(0);
-        SQLUserData.insertByIdentifier(context, item, id);
+        SQLUserData.insertByIdentifier(id, item, context);
     }
 }
 
