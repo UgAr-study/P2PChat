@@ -94,7 +94,7 @@ public class SymCryptography {
         return mac.doFinal(data);
     }
 
-    static public byte[] getMacMsg(String msg, SecretKey key) throws NoSuchAlgorithmException, UnsupportedEncodingException, InvalidKeyException {
+    static public byte[] getMacMsg( SecretKey key, String msg) throws NoSuchAlgorithmException, UnsupportedEncodingException, InvalidKeyException {
         Mac mac = Mac.getInstance("HmacSHA256");
         mac.init(key);
         byte[] data = msg.getBytes("UTF-8");
