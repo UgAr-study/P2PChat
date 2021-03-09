@@ -12,6 +12,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.example.p2pchat.dataTools.SQLUserData;
+import com.example.p2pchat.dataTools.SQLUserInfo;
 import com.example.p2pchat.ui.chat.MessageItem;
 import com.example.p2pchat.ui.chat.ChatRecyclerViewAdapter;
 
@@ -28,6 +29,7 @@ public class ChatActivity extends AppCompatActivity {
     static private final int NUM_LOAD_ROWS = 50;
     private String userPubKey;
     private String userName;
+    private String tableUserInfo;
 
 
     @Override
@@ -39,8 +41,10 @@ public class ChatActivity extends AppCompatActivity {
 
         userPubKey = intent.getStringExtra(MainActivity.EXTRA_USER_PUBLIC_KEY);
         userName = intent.getStringExtra(MainActivity.EXTRA_USER_NAME);
+        tableUserInfo = intent.getStringExtra(MainActivity.EXTRA_USER_TABLE_INFO);
 
-        sqlUserData = new SQLUserData(getBaseContext(), userPubKey);
+        SQLUserInfo dbUI = new SQLUserInfo(this, tableUserInfo);
+        sqlUserData = new SQLUserData(getBaseContext(), dbUI.getIdByPublicKey(userPubKey).get(0));
 
         mMessages = sqlUserData.loadLastMsg(NUM_LOAD_ROWS);
 
