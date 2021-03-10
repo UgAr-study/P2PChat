@@ -67,8 +67,10 @@ public class MCReceiver {
     }
 
     private void AddOwner() {
-        String localIp = "127.0.0.1";
-        UserInfoTable.WriteDB(myName, localIp, myPublicKey);
+        if (UserInfoTable.getIdByPublicKey(myPublicKey).isEmpty()) {
+            String localIp = "127.0.0.1";
+            UserInfoTable.WriteDB(myName, localIp, myPublicKey);
+        }
     }
 
     private void Connect() throws IOException {

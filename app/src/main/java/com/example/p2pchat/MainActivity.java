@@ -9,6 +9,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.example.p2pchat.dataTools.SQLUserData;
 import com.example.p2pchat.dataTools.SQLUserInfo;
 import com.example.p2pchat.network.Interrogator;
 import com.example.p2pchat.network.MCReceiver;
@@ -42,9 +43,8 @@ public class MainActivity extends AppCompatActivity implements DialoguesRecycler
     public static final String EXTRA_USER_PUBLIC_KEY = "public_key";
     public static final String EXTRA_USER_NAME = "user_name";
     public static final String EXTRA_USER_PASSWORD = "user_password";
-    public static final String EXTRA_USER_TABLE_INFO = "user_info_table";
-
-    private final String USER_INFO_TABLE_NAME = "UserInfoTable";
+    public static final String EXTRA_USER_INFO_TABLE = "user_info_table";
+    public static final String USER_INFO_TABLE_NAME = "UserInfoTable";
 
     private String userPublicKey;
     private String userName;
@@ -101,10 +101,16 @@ public class MainActivity extends AppCompatActivity implements DialoguesRecycler
 
     private void getIntents() {
         Intent intent = getIntent();
-
+/*
         userPublicKey = intent.getStringExtra(EXTRA_USER_PUBLIC_KEY);
         userName      = intent.getStringExtra(EXTRA_USER_NAME);
         userPassword  = intent.getStringExtra(EXTRA_USER_PASSWORD);
+ */
+
+        //TODO: change to above
+        userPublicKey = "publicKey";
+        userName      = "userName";
+        userPassword  = "password";
     }
 
     private void defineFragments() {
@@ -131,6 +137,7 @@ public class MainActivity extends AppCompatActivity implements DialoguesRecycler
             @Override
             public void onClick(View view) {
                 dialoguesFragment.onUpdateDialoguesList(new DialogueItem("User", "Test Text", "00:00", String.valueOf(test_count)));
+                //SQLUserData.insertByIdentifier("0", null, MainActivity.this);
                 test_count++;
                 Toast.makeText(MainActivity.this, "TEST", Toast.LENGTH_SHORT).show();
             }
@@ -310,7 +317,7 @@ public class MainActivity extends AppCompatActivity implements DialoguesRecycler
         Intent intent = new Intent(this, ChatActivity.class);
         intent.putExtra(EXTRA_USER_PUBLIC_KEY, item.getUserPublicKey());
         intent.putExtra(EXTRA_USER_NAME, item.getName());
-        intent.putExtra(EXTRA_USER_TABLE_INFO, USER_INFO_TABLE_NAME);
+        intent.putExtra(EXTRA_USER_INFO_TABLE, USER_INFO_TABLE_NAME);
         Toast.makeText(MainActivity.this, item.getUserPublicKey(), Toast.LENGTH_SHORT).show();
 
         startActivity(intent);

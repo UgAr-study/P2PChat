@@ -41,7 +41,7 @@ public class ChatActivity extends AppCompatActivity {
 
         userPubKey = intent.getStringExtra(MainActivity.EXTRA_USER_PUBLIC_KEY);
         userName = intent.getStringExtra(MainActivity.EXTRA_USER_NAME);
-        tableUserInfo = intent.getStringExtra(MainActivity.EXTRA_USER_TABLE_INFO);
+        tableUserInfo = intent.getStringExtra(MainActivity.EXTRA_USER_INFO_TABLE);
 
         SQLUserInfo dbUI = new SQLUserInfo(this, tableUserInfo);
         sqlUserData = new SQLUserData(getBaseContext(), dbUI.getIdByPublicKey(userPubKey).get(0));
