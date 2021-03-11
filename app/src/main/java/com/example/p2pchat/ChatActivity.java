@@ -44,7 +44,8 @@ public class ChatActivity extends AppCompatActivity {
         tableUserInfo = intent.getStringExtra(MainActivity.EXTRA_USER_INFO_TABLE);
 
         SQLUserInfo dbUI = new SQLUserInfo(this, tableUserInfo);
-        sqlUserData = new SQLUserData(getBaseContext(), dbUI.getIdByPublicKey(userPubKey).get(0));
+        sqlUserData = new SQLUserData(getBaseContext(),
+                dbUI.getIdByPublicKey(userPubKey).get(0));
 
         mMessages = sqlUserData.loadLastMsg(NUM_LOAD_ROWS);
 
@@ -75,5 +76,9 @@ public class ChatActivity extends AppCompatActivity {
         chatRecyclerViewAdapter.addItem(new MessageItem(userName, message, currentTime));
         sqlUserData.insert(userName , currentTime, message);
         Log.d("myLogsChatActivity", "Msg saved");
+    }
+
+    static public void updateChat() {
+
     }
 }

@@ -20,6 +20,7 @@ import java.io.ObjectOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectInput;
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.security.InvalidKeyException;
@@ -144,5 +145,18 @@ public class SymCryptography {
         digest.update(pwd.getBytes());
         byte[] encodedhash = digest.digest(pwd.getBytes(StandardCharsets.UTF_8));
         return new SecretKeySpec(encodedhash, 0, encodedhash.length, "AES");
+    }
+
+    public static String getStringHash(String str) throws NoSuchAlgorithmException {
+        MessageDigest md = MessageDigest.getInstance("SHA-256");
+        byte[] hash = md.digest(str.getBytes(StandardCharsets.UTF_8));
+        BigInteger number = new BigInteger(1, hash);
+        StringBuilder hexString = new StringBuilder(number.toString(16));
+        while (hexString.length() < 32)
+        {
+            hexString.insert(0, '0');
+        }
+
+        return hexString.toString();
     }
 }
