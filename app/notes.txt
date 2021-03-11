@@ -1,0 +1,59 @@
+запуск приложения:
+
+    запуск MCReceiver;
+
+    (при получении первого сообщения от MCReceiver или при прошествии 3сек)
+        запуск MCSender;
+
+
+перед тем как отсылать опросы надо изменить статус всех пользователей на offline,
+а потом по мере поступления уже изменять статус на online
+
+можно сделать мультисендера как Completable, и сделать обзервера, который
+в цикле будет запускать опросы с to="all"
+
+а в мультиресивере при получении запроса на "all" кидать сендера с to=fromPublicKey
+по обычному UDP, а не по multi cast
+
+MainActivity:
+    observer of MCReceiver {
+
+        onNext(item) {
+            if (item.isNewUser())
+                dialogues.addItem(item);
+            else
+                dialogues.updateState(item.getPublicKey)
+
+            if (isFirst){
+                isFirst = false;
+                start MCSender;
+            }
+        }
+    }
+
+    observer of first start {
+        -->> Completable: sleep(PERIOD_MS + DELAY)
+        if (isFirst) {
+            isFirst = false;
+            start MCSender;
+        }
+    }
+
+Interrogator (опрашивающий) {
+    while (true) {
+        MCSender("all").getObservable()
+                    .subscribeOn(currentThread)
+                    .observeOn(currentThread)
+                    .subscribe(new CompleteObserver{
+                        @Override
+                        onComplete() {
+                            //do nothing
+                        }
+
+                        @Override
+                        onError() {
+                            //notify someone about it or not
+                        }
+                    });
+    }
+}
