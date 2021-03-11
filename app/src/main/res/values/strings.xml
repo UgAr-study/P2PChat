@@ -1,9 +1,17 @@
 <resources>
     <string name="app_name">P2PChat</string>
+
     <string name="title_home">Home</string>
     <string name="title_dashboard">Dashboard</string>
     <string name="title_notifications">Messages</string>
+
     <string name="send_button">S</string>
     <string name="enter_hint">Enter the message</string>
+
+    <string name="login">Sign up</string>
+    <string name="login_hint">Enter your login</string>
+    <string name="password_hint">Enter password</string>
+    <string name="sign_button">Sign up</string>
+
     <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
