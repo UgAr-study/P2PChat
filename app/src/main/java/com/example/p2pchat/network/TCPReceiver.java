@@ -56,7 +56,7 @@ public class TCPReceiver {
     private SQLUserInfo UserInfoTable;
     private SharedPreferences userKeyStore;
 
-    private Observable<MessageItem> observable;
+    private Observable<MessageInfo> observable;
 
     public TCPReceiver(Context mainContext,
                        SQLUserInfo userInfoTable,
@@ -76,7 +76,7 @@ public class TCPReceiver {
                 while (true) {
                     Connect();
                     String[] rcvMessage = ReceiveMessage();
-                    MessageItem item = ParseMessage(rcvMessage);
+                    MessageInfo item = ParseMessage(rcvMessage);
                     CloseSocket();
 
                     if (item != null)
@@ -90,7 +90,7 @@ public class TCPReceiver {
         });
     }
 
-    public Observable<MessageItem> getObservable() {
+    public Observable<MessageInfo> getObservable() {
         return observable;
     }
 
@@ -108,7 +108,7 @@ public class TCPReceiver {
         return DecryptMessage(encryptedMessage).split("\n"); //TODO: change to: String[] {DecryptMessage(encMsg), pubKey}
     }
 
-    private MessageItem ParseMessage(String[] rcvMessage) {
+    private MessageInfo ParseMessage(String[] rcvMessage) {
 
         if (rcvMessage.length != 2)
             return null;
@@ -116,11 +116,13 @@ public class TCPReceiver {
         String message       = rcvMessage[0];
         String fromPublicKey = rcvMessage[1];
         String name          = UserInfoTable.getNameByPublicKey(fromPublicKey).get(0);
+        String id            = UserInfoTable.getIdByPublicKey(fromPublicKey).get(0);
         Calendar time        = getCurrentTime();
 
-        MessageItem item = new MessageItem(name, message, time);
-        addToDialogueTable(item, fromPublicKey);
-        return item;
+        MessageItem msgItem = new MessageItem(name, message, time);
+        MessageInfo messageInfo = new MessageInfo(msgItem, id, fromPublicKey);
+        addToDialogueTable(msgItem, id);
+        return messageInfo;
     }
 
     private void CloseSocket() throws IOException {
@@ -140,8 +142,7 @@ public class TCPReceiver {
         return new GregorianCalendar();
     }
 
-    private void addToDialogueTable(MessageItem item, String publicKye) {
-        String id = UserInfoTable.getIdByPublicKey(publicKye).get(0);
+    private void addToDialogueTable(MessageItem item, String id) {
         SQLUserData.insertByIdentifier(id, item, context);
     }
 }

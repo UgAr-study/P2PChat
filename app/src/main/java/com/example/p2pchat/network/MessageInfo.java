@@ -26,41 +26,15 @@ public class MessageInfo {
         publicKey = userPublicKey;
     }
 
-/*
-    public void onUpdate() {
-        Observable<String> observable = Observable.create(emmit -> {
-            try {
-                String msg = UserDataTable.loadLastMsg();
-                emmit.onNext(msg);
-            } catch (Exception e) {
-                emmit.onError(e);
-            }
+    public MessageItem getMessageItem() {
+        return messageItem;
+    }
 
-            emmit.onComplete();
-        });
+    public String getId() {
+        return id;
+    }
 
-        observable
-                .subscribeOn(Schedulers.newThread())
-                .subscribe(new Observer<String>() {
-                    @Override
-                    public void onSubscribe(@NonNull Disposable d) {
-                        //nothing
-                    }
-
-                    @Override
-                    public void onNext(@NonNull String s) {
-                        RecyclerViewAdapter.addItem(s);
-                    }
-
-                    @Override
-                    public void onError(@NonNull Throwable e) {
-                        Log.e("MyTag", e.getMessage());
-                    }
-
-                    @Override
-                    public void onComplete() {
-                        Log.e("MyTag", "updater has completed");
-                    }
-                });
-    }*/
+    public String getPublicKey() {
+        return publicKey;
+    }
 }

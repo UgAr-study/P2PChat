@@ -13,6 +13,7 @@ import com.example.p2pchat.dataTools.SQLUserData;
 import com.example.p2pchat.dataTools.SQLUserInfo;
 import com.example.p2pchat.network.Interrogator;
 import com.example.p2pchat.network.MCReceiver;
+import com.example.p2pchat.network.MessageInfo;
 import com.example.p2pchat.network.TCPReceiver;
 import com.example.p2pchat.network.UserInfo;
 import com.example.p2pchat.security.AsymCryptography;
@@ -101,16 +102,16 @@ public class MainActivity extends AppCompatActivity implements DialoguesRecycler
 
     private void getIntents() {
         Intent intent = getIntent();
-/*
         userPublicKey = intent.getStringExtra(EXTRA_USER_PUBLIC_KEY);
         userName      = intent.getStringExtra(EXTRA_USER_NAME);
         userPassword  = intent.getStringExtra(EXTRA_USER_PASSWORD);
- */
 
+/*
         //TODO: change to above
         userPublicKey = "publicKey";
         userName      = "userName";
         userPassword  = "password";
+*/
     }
 
     private void defineFragments() {
@@ -168,7 +169,7 @@ public class MainActivity extends AppCompatActivity implements DialoguesRecycler
 
     private void startTCPReceiver() {
         TCPReceiver tcpReceiver =
-                new TCPReceiver(this, UserInfoTable, userPassword, keyStore);
+                new TCPReceiver(this, UserInfoTable, userPassword, keyStore); //TODO: should i change context to ChatActivity context?
 
         tcpReceiver.getObservable()
                 .subscribeOn(Schedulers.newThread())
@@ -253,15 +254,15 @@ public class MainActivity extends AppCompatActivity implements DialoguesRecycler
         };
     }
 
-    private Observer<MessageItem> getTCPReceiverObserver() {
-        return new Observer<MessageItem>() {
+    private Observer<MessageInfo> getTCPReceiverObserver() {
+        return new Observer<MessageInfo>() {
             @Override
             public void onSubscribe(@io.reactivex.rxjava3.annotations.NonNull Disposable d) {
                 // do nothing yet
             }
 
             @Override
-            public void onNext(@io.reactivex.rxjava3.annotations.NonNull MessageItem messageItem) {
+            public void onNext(@io.reactivex.rxjava3.annotations.NonNull MessageInfo messageInfo) {
                 //TODO: how to update recycler view in ChatActivity?
                 //ChatActivity.onUpdateChatRecyclerView(messageItem);
             }
