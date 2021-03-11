@@ -73,31 +73,31 @@ public class MainActivity extends AppCompatActivity implements DialoguesRecycler
 
     private BottomNavigationView.OnNavigationItemSelectedListener navListener =
             new BottomNavigationView.OnNavigationItemSelectedListener() {
-        @Override
-        public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-            Fragment selectedFragment = null;
+                @Override
+                public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                    Fragment selectedFragment = null;
 
-            switch (item.getItemId()) {
-                case R.id.navigation_home:
-                    selectedFragment = homeFragment;
-                    break;
+                    switch (item.getItemId()) {
+                        case R.id.navigation_home:
+                            selectedFragment = homeFragment;
+                            break;
 
-                case R.id.navigation_dashboard:
-                    selectedFragment = dashboardFragment;
-                    break;
+                        case R.id.navigation_dashboard:
+                            selectedFragment = dashboardFragment;
+                            break;
 
-                case R.id.navigation_dialogues:
-                    selectedFragment = dialoguesFragment;
-                    break;
-            }
+                        case R.id.navigation_dialogues:
+                            selectedFragment = dialoguesFragment;
+                            break;
+                    }
 
-            if (selectedFragment != null)
-                getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.fragment_container, selectedFragment).addToBackStack(null).commit();
+                    if (selectedFragment != null)
+                        getSupportFragmentManager().beginTransaction()
+                                .replace(R.id.fragment_container, selectedFragment).addToBackStack(null).commit();
 
-            return true;
-        }
-    };
+                    return true;
+                }
+            };
 
     private void getIntents() {
         Intent intent = getIntent();
@@ -136,8 +136,7 @@ public class MainActivity extends AppCompatActivity implements DialoguesRecycler
         test_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                dialoguesFragment.onUpdateDialoguesList(new DialogueItem("User", "Test Text", "00:00", String.valueOf(test_count)));
-                //SQLUserData.insertByIdentifier("0", null, MainActivity.this);
+                dialoguesFragment.onUpdateDialoguesList(new DialogueItem(userName, "Test Text", "00:00", userPublicKey));
                 test_count++;
                 Toast.makeText(MainActivity.this, "TEST", Toast.LENGTH_SHORT).show();
             }
@@ -145,11 +144,10 @@ public class MainActivity extends AppCompatActivity implements DialoguesRecycler
     }
 
 
-
-
     private void startNetwork() {
         startMCReceiver();
         startTCPReceiver();
+        startDelay();
     }
 
     private void startMCReceiver() {
@@ -210,6 +208,7 @@ public class MainActivity extends AppCompatActivity implements DialoguesRecycler
                     isMCInterrogatorRun = true;
                     startInterrogator();
                 }
+
             }
 
             @Override
@@ -264,6 +263,7 @@ public class MainActivity extends AppCompatActivity implements DialoguesRecycler
             @Override
             public void onNext(@io.reactivex.rxjava3.annotations.NonNull MessageItem messageItem) {
                 //TODO: how to update recycler view in ChatActivity?
+                //ChatActivity.onUpdateChatRecyclerView(messageItem);
             }
 
             @Override
