@@ -52,7 +52,8 @@ public class MCReceiver {
                 while (true) {
                     requestMsg = ReceiveMessage();
                     userInfo = ParseMessage(requestMsg);
-                    emmit.onNext(userInfo);
+                    if (userInfo != null)
+                        emmit.onNext(userInfo);
                 }
 
             } catch (Exception e) {
