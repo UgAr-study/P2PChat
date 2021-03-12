@@ -31,9 +31,9 @@ public class MessageObject {
         return from;
     }
 
-    public String decrypt(SecretKey aesKey) throws NoSuchPaddingException, ClassNotFoundException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException, IOException {
-        String decryptMsg = SymCryptography.decryptMsg(aesKey, msg);
-        if (!Arrays.equals(SymCryptography.getMacMsg(aesKey, decryptMsg), secureMac)) {
+    public String decrypt(String aesKey) throws NoSuchPaddingException, ClassNotFoundException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException, IOException {
+        String decryptMsg = SymCryptography.decryptMsg(SymCryptography.getSecretKeyByString(aesKey), msg);
+        if (!Arrays.equals(SymCryptography.getMacMsg(SymCryptography.getSecretKeyByString(aesKey), decryptMsg), secureMac)) {
             return null;
         } else {
             return decryptMsg;
