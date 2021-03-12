@@ -95,7 +95,7 @@ public class LoginActivity extends AppCompatActivity {
                         intent.putExtra(EXTRA_LOGIN, name);
                         SQLUserInfo sqlUserInfo = new SQLUserInfo(this, USER_INFO_TABLE_NAME);
                         String adminId = "1";
-                        String adminPublicKey = sqlUserInfo.getPublicKeyById(adminId);
+                        String adminPublicKey = sqlUserInfo.getPublicKeyById(adminId).get(0);
                         intent.putExtra(EXTRA_PUBLIC_KEY, adminPublicKey);
                         sqlUserInfo.updateIpByPublicKey(getLocalIp(), adminPublicKey);
 
