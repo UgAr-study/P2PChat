@@ -44,4 +44,11 @@ public class DialogueItem {
         return userPublicKey;
     }
 
+    public void setLastTime(String lastTime) {
+        this.lastTime = lastTime;
+    }
+
+    public void setLastMessage(String lastMessage) {
+        this.lastMessage = lastMessage;
+    }
 }

@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Pair;
 
 import androidx.annotation.Nullable;
 
@@ -230,6 +231,10 @@ public class SQLUserInfo {
         String[] selectionArgs = new String[] { publicKey };
 
         return db.update(SQLUserInfoHelper.TABLE_NAME, val, selection, selectionArgs);
+    }
+
+    public boolean isPublicKeyInTable (String publicKey) {
+        return !getIdByPublicKey(publicKey).isEmpty();
     }
 
     public boolean deleteInfoBySign (String row, String rowArg) {

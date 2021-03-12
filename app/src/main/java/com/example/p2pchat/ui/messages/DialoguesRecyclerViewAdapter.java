@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.ArrayList;
 
 import com.example.p2pchat.R;
+import com.example.p2pchat.network.MessageInfo;
 
 public class DialoguesRecyclerViewAdapter extends RecyclerView.Adapter<DialoguesRecyclerViewAdapter.DialogueViewHolder> {
 
@@ -59,6 +60,16 @@ public class DialoguesRecyclerViewAdapter extends RecyclerView.Adapter<Dialogues
         notifyItemChanged(getItemCount());
     }
 
+    public void setLastMessage (MessageInfo messageInfo) {
+        int i = findByPublicKey(messageInfo.getPublicKey());
+        if (i == -1)
+            return;
+
+        dialogueItems.get(i).setLastMessage(messageInfo.getMessageItem().getMessage());
+        dialogueItems.get(i).setLastTime(messageInfo.getMessageItem().getTimeHoursMinutes());
+        notifyItemChanged(i);
+    }
+
     public class DialogueViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         TextView Name;
         TextView timeStamp;
@@ -81,5 +92,15 @@ public class DialoguesRecyclerViewAdapter extends RecyclerView.Adapter<Dialogues
 
     public interface OnItemClickListener {
         public void onItemClick(DialogueItem item);
+    }
+
+    private int findByPublicKey(String publicKey) {
+
+        for (int i = 0, end = dialogueItems.size(); i != end; ++i) {
+            if (dialogueItems.get(i).getUserPublicKey().equals(publicKey))
+                return i;
+        }
+
+        return -1;
     }
 }

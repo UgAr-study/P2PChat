@@ -29,12 +29,14 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
+import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.CompletableObserver;
 import io.reactivex.rxjava3.core.Observer;
+import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
@@ -59,8 +61,6 @@ public class MainActivity extends AppCompatActivity implements DialoguesRecycler
     private HomeFragment homeFragment;
     private DashboardFragment dashboardFragment;
 
-    private boolean isMCInterrogatorRun = false;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -69,6 +69,7 @@ public class MainActivity extends AppCompatActivity implements DialoguesRecycler
         getIntents();
         defineFragments();
         accessStorages();
+        setUsersInDialogueFragment();
         startNetwork();
         setOnClickTestButton();
     }
@@ -132,6 +133,24 @@ public class MainActivity extends AppCompatActivity implements DialoguesRecycler
         keyStore = getSharedPreferences(AsymCryptography.KEY_STORE_NAME, MODE_PRIVATE);
     }
 
+    private void setUsersInDialogueFragment () {
+        Single<ArrayList<DialogueItem>> singleObservable = Single.create(emmit -> {
+            try {
+                ArrayList<String> names = UserInfoTable.getAllNames();
+                ArrayList<String> publicKeys = UserInfoTable.getAllPublicKeys();
+
+                ArrayList<DialogueItem> dialogueItems = new ArrayList<>();
+
+                for (int i = 0, end = names.size(); i != end; ++i)
+                    dialogueItems.add(new DialogueItem(names.get(i), "", "00:00", publicKeys.get(i)));
+
+                emmit.onSuccess(dialogueItems);
+            } catch (Exception e) {
+                emmit.onError(e);
+            }
+        });
+    }
+
     private static int test_count = 0;
     public void setOnClickTestButton() {
         Button test_btn = findViewById(R.id.test_button);
@@ -149,7 +168,7 @@ public class MainActivity extends AppCompatActivity implements DialoguesRecycler
     private void startNetwork() {
         startMCReceiver();
         startTCPReceiver();
-        startDelay();
+        startInterrogator();
     }
 
     private void startMCReceiver() {
@@ -178,14 +197,6 @@ public class MainActivity extends AppCompatActivity implements DialoguesRecycler
                 .subscribe(getTCPReceiverObserver());
     }
 
-    private void startDelay() {
-        Completable.complete()
-                .delaySubscription(3500, TimeUnit.MILLISECONDS)
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(getDelayObserver());
-    }
-
     private Observer<UserInfo> getMCReceiverObserver() {
         return new Observer<UserInfo>() {
             @Override
@@ -198,19 +209,13 @@ public class MainActivity extends AppCompatActivity implements DialoguesRecycler
 
                 if (item.isNewUser()) {
                     //TODO delete test info: message & testTime
-                    String message = item.getIpAddress();
+                    String testMessage = item.getIpAddress();
                     String testTime = "00:00";
-                    dialoguesFragment.onUpdateDialoguesList(new DialogueItem(item.getName(), message, testTime,item.getPublicKey()));
+                    dialoguesFragment.onUpdateDialoguesList(new DialogueItem(item.getName(), testMessage, testTime, item.getPublicKey()));
                 } else {
                     //TODO: implement onUpgradeState method
                     //dialoguesFragment.onUpdateState(item.getPublicKey());
                 }
-
-                if (!isMCInterrogatorRun) {
-                    isMCInterrogatorRun = true;
-                    startInterrogator();
-                }
-
             }
 
             @Override
@@ -264,8 +269,9 @@ public class MainActivity extends AppCompatActivity implements DialoguesRecycler
 
             @Override
             public void onNext(@io.reactivex.rxjava3.annotations.NonNull MessageInfo messageInfo) {
-                //TODO: how to update recycler view in ChatActivity?
-                //ChatActivity.onUpdateChatRecyclerView(messageItem);
+                // show new message to user
+                dialoguesFragment.onUpdateLastMessage(messageInfo);
+                ChatActivity.loadNewMsg(messageInfo);
             }
 
             @Override
@@ -283,35 +289,11 @@ public class MainActivity extends AppCompatActivity implements DialoguesRecycler
         };
     }
 
-    private CompletableObserver getDelayObserver() {
-        return new CompletableObserver() {
-            @Override
-            public void onSubscribe(@io.reactivex.rxjava3.annotations.NonNull Disposable d) {
-                //do nothing
-            }
-
-            @Override
-            public void onComplete() {
-                if (!isMCInterrogatorRun) {
-                    isMCInterrogatorRun = true;
-                    startInterrogator();
-                }
-            }
-
-            @Override
-            public void onError(@io.reactivex.rxjava3.annotations.NonNull Throwable e) {
-                Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
-                Log.e("MyTag", e.getMessage()); //TODO delete it
-            }
-        };
-    }
-
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
 
         //TODO: Save the fragment's instance
-        //getSupportFragmentManager().putFragment(outState, "myFragmentName", dialoguesFragment);
     }
 
     @Override
@@ -321,6 +303,7 @@ public class MainActivity extends AppCompatActivity implements DialoguesRecycler
         intent.putExtra(EXTRA_USER_NAME, item.getName());
         intent.putExtra(EXTRA_USER_INFO_TABLE, USER_INFO_TABLE_NAME);
         intent.putExtra(EXTRA_USER_ID, UserInfoTable.getIdByPublicKey(item.getUserPublicKey()).get(0));
+
         Toast.makeText(MainActivity.this, item.getUserPublicKey(), Toast.LENGTH_SHORT).show();
 
         startActivity(intent);

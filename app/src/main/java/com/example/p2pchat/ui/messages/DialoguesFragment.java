@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.p2pchat.R;
+import com.example.p2pchat.network.MessageInfo;
 
 import java.util.ArrayList;
 
@@ -97,5 +98,9 @@ public class DialoguesFragment extends Fragment {
         }
 
         dialogueAdapter.addItem(dItem);
+    }
+
+    public void onUpdateLastMessage(MessageInfo messageInfo) {
+        dialogueAdapter.setLastMessage(messageInfo);
     }
 }

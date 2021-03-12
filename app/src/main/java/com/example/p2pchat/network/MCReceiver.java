@@ -35,7 +35,7 @@ public class MCReceiver {
     private UserInfo userInfo;
     private Observable<UserInfo> observable;
 
-    public MCReceiver (SQLUserInfo sqlUserInfo, String name, String publicKey) { //TODO: pass myName & myPublicKey to constructor
+    public MCReceiver (SQLUserInfo sqlUserInfo, String name, String publicKey) {
 
         UserInfoTable = sqlUserInfo;
         myName = name;
@@ -110,15 +110,14 @@ public class MCReceiver {
             if (fromPublicKey.equals(myPublicKey))
                 return null;
 
-            if (UserInfoTable.getNameByPublicKey(fromPublicKey).isEmpty()) { //TODO: implement isInTable(pubKey) method in SQLUserInfo class
+            if (!UserInfoTable.isPublicKeyInTable(fromPublicKey)) {
                 UserInfoTable.WriteDB(fromName, senderIpAddress, fromPublicKey);
                 userInfo.setIsNewStatus(true);
             }
 
             SendResponse(fromPublicKey);
 
-
-        } else if (toPublicKey.equals(myPublicKey) && UserInfoTable.getNameByPublicKey(fromPublicKey).isEmpty()) {
+        } else if (toPublicKey.equals(myPublicKey) && !UserInfoTable.isPublicKeyInTable(fromPublicKey)) {
             UserInfoTable.WriteDB(fromName, senderIpAddress, fromPublicKey);
             userInfo.setIsNewStatus(true);
         }
