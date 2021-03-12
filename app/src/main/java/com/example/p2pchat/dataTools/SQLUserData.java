@@ -47,6 +47,11 @@ public class SQLUserData {
         dataBase.close();
     }
 
+//    static public ArrayList<MessageItem> loadLastMsg(Context context, String id, int numRows) {
+//        SQLUserData userData = new SQLUserData(context, id);
+//        return userData.loadLastMsg(numRows);
+//    }
+
     public ArrayList<MessageItem> loadLastMsg(int numRows) {
         ArrayList<MessageItem> res = new ArrayList<>();
         SQLiteDatabase db = helper.getReadableDatabase();
