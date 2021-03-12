@@ -106,10 +106,10 @@ public class ChatActivity extends AppCompatActivity {
         }
 
         try {
-            MessageObject messageObject = new MessageObject(AsymCryptography.getPublicKeyFromString(recipientPubKey),
-                                                            AsymCryptography.getPublicKeyFromString(myPubKey),
+            MessageObject messageObject = new MessageObject(recipientPubKey,
+                                                            myPubKey,
                                                             message,
-                                                            SymCryptography.getSecretKeyByString(aesKey));
+                                                            aesKey);
             TCPSender tcpSender = new TCPSender(messageObject, aesKey);
             tcpSender.getObservable()
                     .subscribeOn(Schedulers.newThread())
