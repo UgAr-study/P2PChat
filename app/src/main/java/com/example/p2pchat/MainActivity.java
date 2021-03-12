@@ -37,6 +37,7 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.CompletableObserver;
 import io.reactivex.rxjava3.core.Observer;
 import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.core.SingleObserver;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
@@ -74,7 +75,7 @@ public class MainActivity extends AppCompatActivity implements DialoguesRecycler
         setOnClickTestButton();
     }
 
-    private BottomNavigationView.OnNavigationItemSelectedListener navListener =
+    private final BottomNavigationView.OnNavigationItemSelectedListener navListener =
             new BottomNavigationView.OnNavigationItemSelectedListener() {
                 @Override
                 public boolean onNavigationItemSelected(@NonNull MenuItem item) {
@@ -149,6 +150,11 @@ public class MainActivity extends AppCompatActivity implements DialoguesRecycler
                 emmit.onError(e);
             }
         });
+
+        singleObservable
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(getFillDialoguesObserver());
     }
 
     private static int test_count = 0;
@@ -285,6 +291,27 @@ public class MainActivity extends AppCompatActivity implements DialoguesRecycler
                 String text = "TCPReceiver has completed";
                 Toast.makeText(MainActivity.this, text, Toast.LENGTH_LONG).show();
                 Log.e("MyTag", text); //TODO delete it
+            }
+        };
+    }
+
+    private SingleObserver<ArrayList<DialogueItem>> getFillDialoguesObserver() {
+        return new SingleObserver<ArrayList<DialogueItem>>() {
+            @Override
+            public void onSubscribe(@io.reactivex.rxjava3.annotations.NonNull Disposable d) {
+                // do nothing
+            }
+
+            @Override
+            public void onSuccess(@io.reactivex.rxjava3.annotations.NonNull ArrayList<DialogueItem> dialogueItems) {
+                for (DialogueItem dItem: dialogueItems)
+                    dialoguesFragment.onUpdateDialoguesList(dItem);
+            }
+
+            @Override
+            public void onError(@io.reactivex.rxjava3.annotations.NonNull Throwable e) {
+                Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
+                Log.e("MyTag", e.getMessage()); //TODO delete it
             }
         };
     }

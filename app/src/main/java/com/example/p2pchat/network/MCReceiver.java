@@ -46,7 +46,6 @@ public class MCReceiver {
         observable = Observable.create(emmit -> {
 
             try {
-                //it is now in login activity:  AddOwner();
                 Connect();
 
                 while (true) {
@@ -66,16 +65,6 @@ public class MCReceiver {
     public Observable<UserInfo> getObservable() {
         return observable;
     }
-
-    //it is now in login activity:
-    /*
-    private void AddOwner() {
-        if (UserInfoTable.getIdByPublicKey(myPublicKey).isEmpty()) {
-            String localIp = "127.0.0.1";
-            UserInfoTable.WriteDB(myName, localIp, myPublicKey);
-        }
-    }*/
-
 
     private void Connect() throws IOException {
         socket = new MulticastSocket(port);
