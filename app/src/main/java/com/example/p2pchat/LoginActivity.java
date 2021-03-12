@@ -23,10 +23,7 @@ public class LoginActivity extends AppCompatActivity {
 
     private EditText loginField;
     private EditText passwordField;
-    public static final String USER_INFO_TABLE_NAME = "UserInfoTable";
     public static final String EXTRA_PASSWORD = "password";
-    public static final String EXTRA_LOGIN = "login";
-    public static final String EXTRA_PUBLIC_KEY = "public_key";
     SharedPreferences loginData;
     SharedPreferences kesStore;
 
@@ -75,12 +72,12 @@ public class LoginActivity extends AppCompatActivity {
             }
 
             String userPublicKey = AsymCryptography.getStringAsymKey(generateNewPairAsymKey(password));
-            SQLUserInfo sqlUserInfo = new SQLUserInfo(this, USER_INFO_TABLE_NAME);
+            SQLUserInfo sqlUserInfo = new SQLUserInfo(this, MainActivity.USER_INFO_TABLE_NAME);
             String localIP = getLocalIp();
             sqlUserInfo.WriteDB(name,  localIP, userPublicKey);
 
-            intent.putExtra(EXTRA_LOGIN, name);
-            intent.putExtra(EXTRA_PUBLIC_KEY, userPublicKey);
+            intent.putExtra(MainActivity.EXTRA_USER_NAME, name);
+            intent.putExtra(MainActivity.EXTRA_USER_PUBLIC_KEY, userPublicKey);
 
             startActivity(intent);
 
@@ -92,11 +89,11 @@ public class LoginActivity extends AppCompatActivity {
                 try {
                     String encryptPwd = loginData.getString(name, null);
                     if (SymCryptography.getStringHash(password).equals(encryptPwd)) {
-                        intent.putExtra(EXTRA_LOGIN, name);
-                        SQLUserInfo sqlUserInfo = new SQLUserInfo(this, USER_INFO_TABLE_NAME);
+                        intent.putExtra(MainActivity.EXTRA_USER_NAME, name);
+                        SQLUserInfo sqlUserInfo = new SQLUserInfo(this, MainActivity.USER_INFO_TABLE_NAME);
                         String adminId = "1";
                         String adminPublicKey = sqlUserInfo.getPublicKeyById(adminId).get(0);
-                        intent.putExtra(EXTRA_PUBLIC_KEY, adminPublicKey);
+                        intent.putExtra(MainActivity.EXTRA_USER_PUBLIC_KEY, adminPublicKey);
                         sqlUserInfo.updateIpByPublicKey(getLocalIp(), adminPublicKey);
 
                         startActivity(intent);
