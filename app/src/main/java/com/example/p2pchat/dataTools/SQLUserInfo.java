@@ -162,8 +162,8 @@ public class SQLUserInfo {
         return getCells(SQLUserInfoHelper.KEY_ID, SQLUserInfoHelper.KEY_PUBLIC_KEY, publicKey);
     }
 
-    public ArrayList<String> getPublicKeyById (String id) {
-        return getCells(SQLUserInfoHelper.KEY_PUBLIC_KEY, SQLUserInfoHelper.KEY_ID, id);
+    public String getPublicKeyById (String id) {
+        return getCells(SQLUserInfoHelper.KEY_PUBLIC_KEY, SQLUserInfoHelper.KEY_ID, id).get(0);
     }
 
     public ArrayList<String> getNameById (String id) {

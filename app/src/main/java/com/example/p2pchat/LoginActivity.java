@@ -10,6 +10,7 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.example.p2pchat.dataTools.SQLUserInfo;
 import com.example.p2pchat.security.AsymCryptography;
 import com.example.p2pchat.security.SymCryptography;
 
@@ -18,16 +19,15 @@ import java.net.NetworkInterface;
 import java.security.PublicKey;
 import java.util.Enumeration;
 
-import javax.crypto.SealedObject;
-
 public class LoginActivity extends AppCompatActivity {
 
     private EditText loginField;
     private EditText passwordField;
+    public static final String USER_INFO_TABLE_NAME = "UserInfoTable";
     public static final String EXTRA_PASSWORD = "password";
     public static final String EXTRA_LOGIN = "login";
-    public static final String EXTRA_PABLIC_KEY = "public_key";
-    SharedPreferences userInfo;
+    public static final String EXTRA_PUBLIC_KEY = "public_key";
+    SharedPreferences loginData;
     SharedPreferences kesStore;
 
 
@@ -39,14 +39,10 @@ public class LoginActivity extends AppCompatActivity {
         loginField    = findViewById(R.id.login);
         passwordField = findViewById(R.id.password);
 
-        //TextView locIp = findViewById(R.id.localAddress);
-
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
 
-        userInfo = getSharedPreferences("UsersRegistrationData", MODE_PRIVATE);
-
-        //locIp.setText(getLocalIp());
+        loginData = getSharedPreferences("UsersRegistrationData", MODE_PRIVATE);
     }
 
     public void onClickSignUpButton (View v) {
@@ -66,8 +62,8 @@ public class LoginActivity extends AppCompatActivity {
         Intent intent = new Intent(this, MainActivity.class);
         intent.putExtra(EXTRA_PASSWORD, password);
 
-        if (userInfo.getAll().isEmpty()) {
-            SharedPreferences.Editor userInfoEditor = userInfo.edit();
+        if (loginData.getAll().isEmpty()) {
+            SharedPreferences.Editor userInfoEditor = loginData.edit();
             try {
                 String encryptPwd = SymCryptography.getStringHash(password);
 
@@ -78,21 +74,31 @@ public class LoginActivity extends AppCompatActivity {
                 return;
             }
 
-            String userPublicKye = AsymCryptography.getStringAsymKey(generateNewPairAsymKey(password));
+            String userPublicKey = AsymCryptography.getStringAsymKey(generateNewPairAsymKey(password));
+            SQLUserInfo sqlUserInfo = new SQLUserInfo(this, USER_INFO_TABLE_NAME);
+            String localIP = getLocalIp();
+            sqlUserInfo.WriteDB(name,  localIP, userPublicKey);
 
             intent.putExtra(EXTRA_LOGIN, name);
-            intent.putExtra(EXTRA_PABLIC_KEY, userPublicKye);
+            intent.putExtra(EXTRA_PUBLIC_KEY, userPublicKey);
 
             startActivity(intent);
 
         } else {
-            if (!userInfo.contains(name)) {
+            if (!loginData.contains(name)) {
                 Toast.makeText(this, "Invalid login", Toast.LENGTH_SHORT).show();
                 return;
             } else {
                 try {
-                    String encryptPwd = userInfo.getString(name, null);
+                    String encryptPwd = loginData.getString(name, null);
                     if (SymCryptography.getStringHash(password).equals(encryptPwd)) {
+                        intent.putExtra(EXTRA_LOGIN, name);
+                        SQLUserInfo sqlUserInfo = new SQLUserInfo(this, USER_INFO_TABLE_NAME);
+                        String adminId = "1";
+                        String adminPublicKey = sqlUserInfo.getPublicKeyById(adminId);
+                        intent.putExtra(EXTRA_PUBLIC_KEY, adminPublicKey);
+                        sqlUserInfo.updateIpByPublicKey(getLocalIp(), adminPublicKey);
+
                         startActivity(intent);
                     } else {
                         Toast.makeText(this, "Invalid password", Toast.LENGTH_LONG).show();
