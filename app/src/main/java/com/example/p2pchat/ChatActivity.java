@@ -16,6 +16,8 @@ import com.example.p2pchat.dataTools.SQLUserInfo;
 import com.example.p2pchat.network.MessageInfo;
 import com.example.p2pchat.network.MessageObject;
 import com.example.p2pchat.network.TCPSender;
+import com.example.p2pchat.security.AsymCryptography;
+import com.example.p2pchat.security.SymCryptography;
 import com.example.p2pchat.ui.chat.MessageItem;
 import com.example.p2pchat.ui.chat.ChatRecyclerViewAdapter;
 
@@ -30,6 +32,7 @@ import java.util.TimeZone;
 
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.annotations.NonNull;
+import io.reactivex.rxjava3.core.CompletableObserver;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Observer;
 import io.reactivex.rxjava3.disposables.Disposable;
@@ -51,6 +54,7 @@ public class ChatActivity extends AppCompatActivity {
     static public final String EXTRA_SENDER_PUBKEY = "sender public key";
     static public final String EXTRA_RECIPIENT_NAME = "recipient name";
     static public final String EXTRA_RECIPIENT_ID = "recipient id";
+    static public final String EXTRA_AES_KEY = "aes key";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,12 +63,12 @@ public class ChatActivity extends AppCompatActivity {
 
         Intent intent = getIntent();
 
-        recipientPubKey = intent.getStringExtra(MainActivity.EXTRA_USER_PUBLIC_KEY);
-        recipientName = intent.getStringExtra(MainActivity.EXTRA_USER_NAME);
-        recipientId = intent.getStringExtra(MainActivity.EXTRA_USER_ID);
+        recipientPubKey = intent.getStringExtra(EXTRA_RECIPIENT_PUBKEY);
+        recipientName = intent.getStringExtra(EXTRA_RECIPIENT_NAME);
+        recipientId = intent.getStringExtra(EXTRA_RECIPIENT_ID);
         tableUserInfo = intent.getStringExtra(MainActivity.EXTRA_USER_INFO_TABLE);
-        myPubKey = null;
-        aesKey = null;
+        myPubKey = intent.getStringExtra(EXTRA_SENDER_PUBKEY);
+        aesKey = intent.getStringExtra(EXTRA_AES_KEY);
 
         SQLUserInfo dbUI = new SQLUserInfo(this, tableUserInfo);
         sqlUserData = new SQLUserData(getBaseContext(),
@@ -99,12 +103,34 @@ public class ChatActivity extends AppCompatActivity {
         }
 
         try {
-            MessageObject messageObject = new MessageObject(recipientPubKey, myPubKey, message, aesKey);
-        } catch (NoSuchAlgorithmException | InvalidKeyException | UnsupportedEncodingException) {
+            MessageObject messageObject = new MessageObject(AsymCryptography.getPublicKeyFromString(recipientPubKey),
+                                                            AsymCryptography.getPublicKeyFromString(myPubKey),
+                                                            message,
+                                                            SymCryptography.getSecretKeyByString(aesKey));
+            TCPSender tcpSender = new TCPSender(messageObject, aesKey);
+            tcpSender.getObservable()
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new CompletableObserver() {
+                        @Override
+                        public void onSubscribe(@NonNull Disposable d) {
 
+                        }
+
+                        @Override
+                        public void onComplete() {
+                            Log.e("MyTag", "msg send");
+                        }
+
+                        @Override
+                        public void onError(@NonNull Throwable e) {
+                            Log.e("MyTag", e.getMessage());
+                        }
+                    });
+        } catch (NoSuchAlgorithmException | InvalidKeyException | UnsupportedEncodingException e) {
+            Toast.makeText(this, "Crypto error", Toast.LENGTH_SHORT).show();
+            return;
         }
-        TCPSender tcpSender = new TCPSender(messageObject, aesKey);
-
 
         Calendar currentTime = new GregorianCalendar(TimeZone.getDefault());
         chatRecyclerViewAdapter.addItem(new MessageItem(recipientName, message, currentTime));
