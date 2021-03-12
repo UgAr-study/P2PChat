@@ -49,12 +49,14 @@ public class ChatActivity extends AppCompatActivity {
     static private String recipientId;
     static private String myPubKey;
     static private String aesKey;
+    static private String myName;
 
     static public final String EXTRA_RECIPIENT_PUBKEY = "recipient public key";
     static public final String EXTRA_SENDER_PUBKEY = "sender public key";
     static public final String EXTRA_RECIPIENT_NAME = "recipient name";
     static public final String EXTRA_RECIPIENT_ID = "recipient id";
     static public final String EXTRA_AES_KEY = "aes key";
+    static public final String EXTRA_SENDER_NAME = "my name";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,6 +71,7 @@ public class ChatActivity extends AppCompatActivity {
         tableUserInfo = intent.getStringExtra(MainActivity.EXTRA_USER_INFO_TABLE);
         myPubKey = intent.getStringExtra(EXTRA_SENDER_PUBKEY);
         aesKey = intent.getStringExtra(EXTRA_AES_KEY);
+        myName = intent.getStringExtra(EXTRA_SENDER_NAME);
 
         SQLUserInfo dbUI = new SQLUserInfo(this, tableUserInfo);
         sqlUserData = new SQLUserData(getBaseContext(),
@@ -114,7 +117,7 @@ public class ChatActivity extends AppCompatActivity {
                     .subscribe(new CompletableObserver() {
                         @Override
                         public void onSubscribe(@NonNull Disposable d) {
-
+                            //Nothing
                         }
 
                         @Override
@@ -133,7 +136,7 @@ public class ChatActivity extends AppCompatActivity {
         }
 
         Calendar currentTime = new GregorianCalendar(TimeZone.getDefault());
-        chatRecyclerViewAdapter.addItem(new MessageItem(recipientName, message, currentTime));
+        chatRecyclerViewAdapter.addItem(new MessageItem( myName, message, currentTime));
         sqlUserData.insert(recipientName, currentTime, message);
         Log.d("myLogsChatActivity", "Msg saved");
     }
