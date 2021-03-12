@@ -46,6 +46,7 @@ public class MainActivity extends AppCompatActivity implements DialoguesRecycler
     public static final String EXTRA_USER_PASSWORD = "user_password";
     public static final String EXTRA_USER_INFO_TABLE = "user_info_table";
     public static final String USER_INFO_TABLE_NAME = "UserInfoTable";
+    public static final String EXTRA_USER_ID = "user_id";
 
     private String userPublicKey;
     private String userName;
@@ -319,6 +320,7 @@ public class MainActivity extends AppCompatActivity implements DialoguesRecycler
         intent.putExtra(EXTRA_USER_PUBLIC_KEY, item.getUserPublicKey());
         intent.putExtra(EXTRA_USER_NAME, item.getName());
         intent.putExtra(EXTRA_USER_INFO_TABLE, USER_INFO_TABLE_NAME);
+        intent.putExtra(EXTRA_USER_ID, UserInfoTable.getIdByPublicKey(item.getUserPublicKey()).get(0));
         Toast.makeText(MainActivity.this, item.getUserPublicKey(), Toast.LENGTH_SHORT).show();
 
         startActivity(intent);
