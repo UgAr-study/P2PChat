@@ -4,7 +4,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -15,10 +14,15 @@ import android.widget.Toast;
 import com.example.p2pchat.dataTools.SQLUserData;
 import com.example.p2pchat.dataTools.SQLUserInfo;
 import com.example.p2pchat.network.MessageInfo;
+import com.example.p2pchat.network.MessageObject;
+import com.example.p2pchat.network.TCPSender;
 import com.example.p2pchat.ui.chat.MessageItem;
 import com.example.p2pchat.ui.chat.ChatRecyclerViewAdapter;
 
 
+import java.io.UnsupportedEncodingException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
@@ -36,11 +40,17 @@ public class ChatActivity extends AppCompatActivity {
     static private ArrayList<MessageItem> mMessages;
     static private SQLUserData sqlUserData;
     static private final int NUM_LOAD_ROWS = 50;
-    static private String userPubKey;
-    static private String userName;
+    static private String recipientPubKey;
+    static private String recipientName;
     static private String tableUserInfo;
-    static private String userId;
+    static private String recipientId;
+    static private String myPubKey;
+    static private String aesKey;
 
+    static public final String EXTRA_RECIPIENT_PUBKEY = "recipient public key";
+    static public final String EXTRA_SENDER_PUBKEY = "sender public key";
+    static public final String EXTRA_RECIPIENT_NAME = "recipient name";
+    static public final String EXTRA_RECIPIENT_ID = "recipient id";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,14 +59,16 @@ public class ChatActivity extends AppCompatActivity {
 
         Intent intent = getIntent();
 
-        userPubKey = intent.getStringExtra(MainActivity.EXTRA_USER_PUBLIC_KEY);
-        userName = intent.getStringExtra(MainActivity.EXTRA_USER_NAME);
-        userId = intent.getStringExtra(MainActivity.EXTRA_USER_ID);
+        recipientPubKey = intent.getStringExtra(MainActivity.EXTRA_USER_PUBLIC_KEY);
+        recipientName = intent.getStringExtra(MainActivity.EXTRA_USER_NAME);
+        recipientId = intent.getStringExtra(MainActivity.EXTRA_USER_ID);
         tableUserInfo = intent.getStringExtra(MainActivity.EXTRA_USER_INFO_TABLE);
+        myPubKey = null;
+        aesKey = null;
 
         SQLUserInfo dbUI = new SQLUserInfo(this, tableUserInfo);
         sqlUserData = new SQLUserData(getBaseContext(),
-                dbUI.getIdByPublicKey(userPubKey).get(0));
+                dbUI.getIdByPublicKey(recipientPubKey).get(0));
 
         mMessages = new ArrayList<>();
         RecyclerView recyclerView = findViewById(R.id.recyclerView);
@@ -75,7 +87,7 @@ public class ChatActivity extends AppCompatActivity {
         super.onDestroy();
     }
 
-    public String getUserId() {return userId;}
+    public String getUserId() {return recipientId;}
 
     public void onClickSendButton (View v) {
         EditText editText = findViewById(R.id.message);
@@ -86,9 +98,17 @@ public class ChatActivity extends AppCompatActivity {
             return;
         }
 
+        try {
+            MessageObject messageObject = new MessageObject(recipientPubKey, myPubKey, message, aesKey);
+        } catch (NoSuchAlgorithmException | InvalidKeyException | UnsupportedEncodingException) {
+
+        }
+        TCPSender tcpSender = new TCPSender(messageObject, aesKey);
+
+
         Calendar currentTime = new GregorianCalendar(TimeZone.getDefault());
-        chatRecyclerViewAdapter.addItem(new MessageItem(userName, message, currentTime));
-        sqlUserData.insert(userName , currentTime, message);
+        chatRecyclerViewAdapter.addItem(new MessageItem(recipientName, message, currentTime));
+        sqlUserData.insert(recipientName, currentTime, message);
         Log.d("myLogsChatActivity", "Msg saved");
     }
 
@@ -134,7 +154,8 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     static public void loadNewMsg(MessageInfo msg) {
-        if (msg.getId().equals(ChatActivity.userId)) {
+        if (msg.getId().equals(ChatActivity.recipientId)) {
+            ChatActivity.mMessages.add(msg.getMessageItem());
             ChatActivity.chatRecyclerViewAdapter.addItem(msg.getMessageItem());
         }
     }
