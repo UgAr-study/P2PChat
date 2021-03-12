@@ -1,5 +1,6 @@
 package com.example.p2pchat.network;
 
+import com.example.p2pchat.security.AsymCryptography;
 import com.example.p2pchat.security.SymCryptography;
 
 import java.io.IOException;
@@ -16,17 +17,17 @@ import javax.crypto.SealedObject;
 import javax.crypto.SecretKey;
 
 public class MessageObject {
-    private final PublicKey from;
+    private final String from;
     private final SealedObject msg;
     private final byte[] secureMac;
 
-    public MessageObject(PublicKey from, PublicKey to, String msg, SecretKey aesKey) throws NoSuchAlgorithmException, InvalidKeyException, UnsupportedEncodingException {
+    public MessageObject(String from, String to, String msg, String aesKey) throws NoSuchAlgorithmException, InvalidKeyException, UnsupportedEncodingException {
         this.from = from;
-        this.msg = SymCryptography.encryptMsg(aesKey, msg);
-        this.secureMac = SymCryptography.getMacMsg(aesKey, msg);
+        this.msg = SymCryptography.encryptMsg(SymCryptography.getSecretKeyByString(aesKey), msg);
+        this.secureMac = SymCryptography.getMacMsg(SymCryptography.getSecretKeyByString(aesKey), msg);
     }
 
-    public PublicKey from() {
+    public String from() {
         return from;
     }
 
