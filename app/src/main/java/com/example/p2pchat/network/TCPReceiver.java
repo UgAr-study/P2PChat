@@ -45,7 +45,7 @@ public class TCPReceiver {
     private final int port = 4000;
 
     private String userPassword;
-    private String encryptedMessage; //TODO: change to Pair <SealObject, PublicKey>
+    private MessageObject encryptedMessage; //TODO: change to Pair <SealObject, PublicKey>
 
     private Socket socket;
     private ServerSocket serverSocket;
@@ -103,20 +103,29 @@ public class TCPReceiver {
         inputStream = new ObjectInputStream(socket.getInputStream());
     }
 
-    private String[] ReceiveMessage() throws IOException, ClassNotFoundException {
-        encryptedMessage = (String) inputStream.readObject();
-        return DecryptMessage(encryptedMessage).split("\n"); //TODO: change to: String[] {DecryptMessage(encMsg), pubKey}
+    private String[] ReceiveMessage() throws IOException, ClassNotFoundException, IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException {
+        encryptedMessage = (MessageObject) inputStream.readObject();
+
+        String fromPublicKey = encryptedMessage.from();
+        String aesKey        = UserInfoTable.getAESKeyByPublicKey(fromPublicKey).get(0);
+        String message       = encryptedMessage.decrypt(aesKey);
+
+        if (fromPublicKey == null || aesKey == null || message == null)
+            return null;
+
+        return new String[] {message, fromPublicKey};
     }
 
     private MessageInfo ParseMessage(String[] rcvMessage) {
 
-        if (rcvMessage.length != 2)
+        if (rcvMessage == null)
             return null;
 
         String message       = rcvMessage[0];
         String fromPublicKey = rcvMessage[1];
         String name          = UserInfoTable.getNameByPublicKey(fromPublicKey).get(0);
         String id            = UserInfoTable.getIdByPublicKey(fromPublicKey).get(0);
+
         Calendar time        = getCurrentTime();
 
         MessageItem msgItem = new MessageItem(name, message, time);
@@ -132,10 +141,6 @@ public class TCPReceiver {
     private void CloseAll () throws IOException {
         socket.close();
         serverSocket.close();
-    }
-
-    private String DecryptMessage(String encryptedMessage) { //TODO: change it to right decryption
-        return encryptedMessage;
     }
 
     private Calendar getCurrentTime() {

@@ -330,6 +330,7 @@ public class MainActivity extends AppCompatActivity implements DialoguesRecycler
         intent.putExtra(ChatActivity.EXTRA_RECIPIENT_PUBKEY, item.getUserPublicKey());
         intent.putExtra(ChatActivity.EXTRA_SENDER_PUBKEY, userPublicKey);
         intent.putExtra(ChatActivity.EXTRA_RECIPIENT_NAME, item.getName());
+        intent.putExtra(ChatActivity.EXTRA_SENDER_NAME, userName);
         intent.putExtra(ChatActivity.EXTRA_RECIPIENT_ID, UserInfoTable.getIdByPublicKey(item.getUserPublicKey()).get(0));
         intent.putExtra(ChatActivity.EXTRA_AES_KEY, UserInfoTable.getAESKeyByPublicKey(item.getUserPublicKey()).get(0));
         intent.putExtra(EXTRA_USER_INFO_TABLE, USER_INFO_TABLE_NAME);
