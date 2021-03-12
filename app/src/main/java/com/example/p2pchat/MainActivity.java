@@ -109,12 +109,6 @@ public class MainActivity extends AppCompatActivity implements DialoguesRecycler
         userName      = intent.getStringExtra(EXTRA_USER_NAME);
         userPassword  = intent.getStringExtra(EXTRA_USER_PASSWORD);
 
-/*
-        //TODO: change to above
-        userPublicKey = "publicKey";
-        userName      = "userName";
-        userPassword  = "password";
-*/
     }
 
     private void defineFragments() {

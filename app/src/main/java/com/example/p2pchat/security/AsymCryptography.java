@@ -36,6 +36,8 @@ public class AsymCryptography {
     private PrivateKey privateKey = null;
     private PublicKey publicKey = null;
 
+    private static SharedPreferences keyStore = null;
+
     public AsymCryptography() {
         try {
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
@@ -46,6 +48,10 @@ public class AsymCryptography {
         } catch (Exception e) {
             return;
         }
+    }
+
+    static SharedPreferences getKeyStore() {
+        return keyStore;
     }
 
     //*Load private key
@@ -67,8 +73,9 @@ public class AsymCryptography {
         }
     }
 
-    static public PublicKey generateAndSaveNewPair(String pwd, SharedPreferences keyStore) {
+    static public PublicKey generateAndSaveNewPair(String pwd, SharedPreferences newKeyStore) {
         try {
+            keyStore = newKeyStore;
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
             keyPairGenerator.initialize(4096);
             KeyPair keyPair = keyPairGenerator.generateKeyPair();

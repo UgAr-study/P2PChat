@@ -105,6 +105,12 @@ public class ChatActivity extends AppCompatActivity {
             return;
         }
 
+        if (aesKey == null) {
+            aesKey = SymCryptography.generateStringSecretKey();
+            SQLUserInfo sqlUserInfo = new SQLUserInfo(this, tableUserInfo);
+            sqlUserInfo.updateAESKeyByPublicKey( aesKey, recipientPubKey);
+        }
+
         try {
             MessageObject messageObject = new MessageObject(recipientPubKey,
                                                             myPubKey,

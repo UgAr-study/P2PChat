@@ -25,7 +25,7 @@ public class LoginActivity extends AppCompatActivity {
     private EditText passwordField;
     public static final String EXTRA_PASSWORD = "password";
     SharedPreferences loginData;
-    SharedPreferences kesStore;
+    SharedPreferences keyStore;
 
 
     @Override
@@ -132,8 +132,8 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private PublicKey generateNewPairAsymKey(String pwd) {
-        kesStore = getSharedPreferences(AsymCryptography.KEY_STORE_NAME, MODE_PRIVATE);
-        return AsymCryptography.generateAndSaveNewPair(pwd, kesStore);
+        keyStore = getSharedPreferences(AsymCryptography.KEY_STORE_NAME, MODE_PRIVATE);
+        return AsymCryptography.generateAndSaveNewPair(pwd, keyStore);
     }
 
 }
