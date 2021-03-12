@@ -20,11 +20,21 @@ public class MessageObject {
     private final String from;
     private final SealedObject msg;
     private final byte[] secureMac;
+    private boolean keyFlag = false;
 
     public MessageObject(String from, String to, String msg, String aesKey) throws NoSuchAlgorithmException, InvalidKeyException, UnsupportedEncodingException {
         this.from = from;
         this.msg = SymCryptography.encryptMsg(SymCryptography.getSecretKeyByString(aesKey), msg);
         this.secureMac = SymCryptography.getMacMsg(SymCryptography.getSecretKeyByString(aesKey), msg);
+    }
+
+    public MessageObject(String from, String to, String msg, String aesKey, boolean keyOrNot) throws NoSuchAlgorithmException, InvalidKeyException, UnsupportedEncodingException {
+        this(from, to, msg, aesKey);
+        keyFlag = true;
+    }
+
+    public boolean isKeyMsg() {
+        return keyFlag;
     }
 
     public String from() {
