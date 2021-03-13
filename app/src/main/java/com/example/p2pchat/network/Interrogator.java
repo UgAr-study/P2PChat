@@ -1,5 +1,9 @@
 package com.example.p2pchat.network;
 
+import com.example.p2pchat.dataTools.SQLUserInfo;
+
+import java.util.Random;
+
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.CompletableObserver;
 import io.reactivex.rxjava3.core.Observable;
@@ -13,12 +17,15 @@ public class Interrogator {
     private String userPublicKye;
     private String userName;
     private Observable<Boolean> observable;
+    private SQLUserInfo UserInfoTable;
+    private Random random;
 
-    public Interrogator(String fromPublicKey, String fromName) {
+    public Interrogator(SQLUserInfo sqlUserInfo, String fromPublicKey, String fromName) {
 
         userPublicKye = fromPublicKey;
         userName = fromName;
-
+        UserInfoTable = sqlUserInfo;
+        random = new Random();
         observable = createObservable();
     }
 
@@ -31,6 +38,7 @@ public class Interrogator {
 
             while (true) {
                 //TODO: check if it will work if create it just once
+                UserInfoTable.setOfflineForAllUsers();
                 MCSender sender = new MCSender("all", userPublicKye, userName);
 
                 sender.getObservable().subscribe(getObserver(emmit));
@@ -49,7 +57,8 @@ public class Interrogator {
 
     private void Sleep() throws InterruptedException {
         //TODO: come up with smth better...
-        Thread.sleep(PERIOD_MS);
+        int rand = random.nextInt(500);
+        Thread.sleep(PERIOD_MS + rand);
     }
 
     private CompletableObserver getObserver(ObservableEmitter<Boolean> emmit) {

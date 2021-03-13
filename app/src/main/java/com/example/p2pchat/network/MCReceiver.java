@@ -97,12 +97,19 @@ public class MCReceiver {
 
         userInfo = new UserInfo(fromName, fromPublicKey, senderIpAddress);
 
+
         if (toPublicKey.equals("all")) {
+            /*
+            It is a broadcast request for online users
+             */
 
             if (fromPublicKey.equals(myPublicKey))
                 return null;
 
             if (!UserInfoTable.isPublicKeyInTable(fromPublicKey)) {
+                /*
+                This is new user
+                 */
                 UserInfoTable.WriteDB(fromName, senderIpAddress, fromPublicKey);
                 userInfo.setIsNewStatus(true);
             }
@@ -110,9 +117,14 @@ public class MCReceiver {
             SendResponse(fromPublicKey);
 
         } else if (toPublicKey.equals(myPublicKey) && !UserInfoTable.isPublicKeyInTable(fromPublicKey)) {
+            /*
+            It is a response for our request and this is the new user
+             */
             UserInfoTable.WriteDB(fromName, senderIpAddress, fromPublicKey);
             userInfo.setIsNewStatus(true);
         }
+
+        UserInfoTable.setOnlineStatusByPublicKey(fromPublicKey);
 
         return userInfo;
     }

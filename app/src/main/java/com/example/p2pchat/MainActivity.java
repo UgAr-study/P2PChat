@@ -202,7 +202,7 @@ public class MainActivity extends AppCompatActivity implements DialoguesRecycler
     }
 
     private void startInterrogator() {
-        Interrogator interrogator = new Interrogator(userPublicKey, userName);
+        Interrogator interrogator = new Interrogator(UserInfoTable, userPublicKey, userName);
         interrogator.getObservable()
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())

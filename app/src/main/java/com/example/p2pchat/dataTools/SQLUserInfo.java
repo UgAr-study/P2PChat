@@ -25,6 +25,7 @@ public class SQLUserInfo {
         contentValues.put(SQLUserInfoHelper.KEY_IP_ADDRESS, ip);
         contentValues.put(SQLUserInfoHelper.KEY_PUBLIC_KEY, publicKey);
         contentValues.put(SQLUserInfoHelper.KEY_ENCRYPT_AES_KEY, encryptAESKey);
+        contentValues.put(SQLUserInfoHelper.KEY_STATUS, "online");
 
         SQLiteDatabase dataBase = helper.getWritableDatabase();
         dataBase.insert(SQLUserInfoHelper.TABLE_NAME, null, contentValues);
@@ -38,6 +39,7 @@ public class SQLUserInfo {
         contentValues.put(SQLUserInfoHelper.KEY_NAME, name);
         contentValues.put(SQLUserInfoHelper.KEY_IP_ADDRESS, ip);
         contentValues.put(SQLUserInfoHelper.KEY_PUBLIC_KEY, publicKey);
+        contentValues.put(SQLUserInfoHelper.KEY_STATUS, "online");
 
         SQLiteDatabase dataBase = helper.getWritableDatabase();
         dataBase.insert(SQLUserInfoHelper.TABLE_NAME, null, contentValues);
@@ -104,6 +106,10 @@ public class SQLUserInfo {
         return getAllRowsInColumn(SQLUserInfoHelper.KEY_ID);
     }
 
+    public ArrayList<String> getAllStatuses() {
+        return getAllRowsInColumn(SQLUserInfoHelper.KEY_STATUS);
+    }
+
     private ArrayList<String> getCells (String Column, String row, String rowArg) {
 
         ArrayList<String> res = new ArrayList<>();
@@ -154,24 +160,16 @@ public class SQLUserInfo {
         return getCells(SQLUserInfoHelper.KEY_PUBLIC_KEY, SQLUserInfoHelper.KEY_NAME, Name);
     }
 
-    public ArrayList<String> getIpAddressByName (String Name) {
-        return getCells(SQLUserInfoHelper.KEY_IP_ADDRESS, SQLUserInfoHelper.KEY_NAME, Name);
-    }
-
-    public ArrayList<String> getIdByName (String Name) {
-        return getCells(SQLUserInfoHelper.KEY_ID, SQLUserInfoHelper.KEY_NAME, Name);
-    }
-
-    public ArrayList<String> getIdByPublicKey (String publicKey) {
-        return getCells(SQLUserInfoHelper.KEY_ID, SQLUserInfoHelper.KEY_PUBLIC_KEY, publicKey);
+    public ArrayList<String> getPublicKeyByIpAddress (String ip) {
+        return getCells(SQLUserInfoHelper.KEY_PUBLIC_KEY, SQLUserInfoHelper.KEY_IP_ADDRESS, ip);
     }
 
     public ArrayList<String> getPublicKeyById (String id) {
         return getCells(SQLUserInfoHelper.KEY_PUBLIC_KEY, SQLUserInfoHelper.KEY_ID, id);
     }
 
-    public ArrayList<String> getNameById (String id) {
-        return getCells(SQLUserInfoHelper.KEY_NAME, SQLUserInfoHelper.KEY_ID, id);
+    public ArrayList<String> getIpAddressByName (String Name) {
+        return getCells(SQLUserInfoHelper.KEY_IP_ADDRESS, SQLUserInfoHelper.KEY_NAME, Name);
     }
 
     public ArrayList<String> getIpAddressById (String id) {
@@ -186,14 +184,21 @@ public class SQLUserInfo {
         return getCells(SQLUserInfoHelper.KEY_NAME, SQLUserInfoHelper.KEY_PUBLIC_KEY, publicKey);
     }
 
+    public ArrayList<String> getNameById (String id) {
+        return getCells(SQLUserInfoHelper.KEY_NAME, SQLUserInfoHelper.KEY_ID, id);
+    }
+
     public ArrayList<String> getNameByIpAddress (String ip) {
         return getCells(SQLUserInfoHelper.KEY_NAME, SQLUserInfoHelper.KEY_IP_ADDRESS, ip);
     }
 
-    public ArrayList<String> getPublicKeyByIpAddress (String ip) {
-        return getCells(SQLUserInfoHelper.KEY_PUBLIC_KEY, SQLUserInfoHelper.KEY_IP_ADDRESS, ip);
+    public ArrayList<String> getIdByName (String Name) {
+        return getCells(SQLUserInfoHelper.KEY_ID, SQLUserInfoHelper.KEY_NAME, Name);
     }
 
+    public ArrayList<String> getIdByPublicKey (String publicKey) {
+        return getCells(SQLUserInfoHelper.KEY_ID, SQLUserInfoHelper.KEY_PUBLIC_KEY, publicKey);
+    }
 
     public ArrayList<String> getAESKeyByPublicKey (String publicKey) {
         return getCells(SQLUserInfoHelper.KEY_ENCRYPT_AES_KEY, SQLUserInfoHelper.KEY_PUBLIC_KEY, publicKey);
@@ -208,9 +213,60 @@ public class SQLUserInfo {
         return getCells(SQLUserInfoHelper.KEY_ENCRYPT_AES_KEY, SQLUserInfoHelper.KEY_IP_ADDRESS, ip);
     }
 
+    public ArrayList<String> getStatusByPublicKey (String publicKey) {
+        return getCells(SQLUserInfoHelper.KEY_STATUS, SQLUserInfoHelper.KEY_PUBLIC_KEY, publicKey);
+    }
+
+    public ArrayList<String> getStatusByIpAddress (String ip) {
+        return getCells(SQLUserInfoHelper.KEY_STATUS, SQLUserInfoHelper.KEY_IP_ADDRESS, ip);
+    }
+
+    public ArrayList<String> getStatusById (String id) {
+        return getCells(SQLUserInfoHelper.KEY_STATUS, SQLUserInfoHelper.KEY_ID, id);
+    }
+
+    public ArrayList<String> getStatusByName (String name) {
+        return getCells(SQLUserInfoHelper.KEY_STATUS, SQLUserInfoHelper.KEY_NAME, name);
+    }
+
+    public boolean isOnline (String publicKey)  {
+        String status = getStatusByPublicKey(publicKey).get(0);
+        return status.equals("online");
+    }
+
+    public void setOnlineStatusByPublicKey (String publicKey) {
+        SQLiteDatabase db = helper.getWritableDatabase();
+        ContentValues val = new ContentValues();
+        val.put(SQLUserInfoHelper.KEY_STATUS, "online");
+
+        String selection = SQLUserInfoHelper.KEY_PUBLIC_KEY + " = ?";
+        String[] selectionArgs = new String[] { publicKey };
+
+        db.update(SQLUserInfoHelper.TABLE_NAME, val, selection, selectionArgs);
+    }
+
+    public void setOfflineStatusByPublicKey (String publicKey) {
+        SQLiteDatabase db = helper.getWritableDatabase();
+        ContentValues val = new ContentValues();
+        val.put(SQLUserInfoHelper.KEY_STATUS, "offline");
+
+        String selection = SQLUserInfoHelper.KEY_PUBLIC_KEY + " = ?";
+        String[] selectionArgs = new String[] { publicKey };
+
+        db.update(SQLUserInfoHelper.TABLE_NAME, val, selection, selectionArgs);
+    }
+
+    public void setOfflineForAllUsers () {
+        SQLiteDatabase db = helper.getWritableDatabase();
+        ContentValues val = new ContentValues();
+        val.put(SQLUserInfoHelper.KEY_STATUS, "offline");
+
+        db.update(SQLUserInfoHelper.TABLE_NAME, val, null, null);
+    }
+
     public int updateAESKeyByPublicKey (String aesKey, String publicKey) {
-        SQLiteDatabase db = helper.getReadableDatabase();
-        ContentValues val = new ContentValues ();
+        SQLiteDatabase db = helper.getWritableDatabase();
+        ContentValues val = new ContentValues();
         val.put (SQLUserInfoHelper.KEY_ENCRYPT_AES_KEY, aesKey);
 
         String selection = SQLUserInfoHelper.KEY_PUBLIC_KEY + " = ?";
@@ -220,7 +276,7 @@ public class SQLUserInfo {
     }
 
     public int updateAESKeyByIpAddress (String aesKey, String ip) {
-        SQLiteDatabase db = helper.getReadableDatabase();
+        SQLiteDatabase db = helper.getWritableDatabase();
         ContentValues val = new ContentValues ();
         val.put (SQLUserInfoHelper.KEY_ENCRYPT_AES_KEY, aesKey);
 
@@ -231,7 +287,7 @@ public class SQLUserInfo {
     }
 
     public int updateIpByPublicKey (String ip, String publicKey) {
-        SQLiteDatabase db = helper.getReadableDatabase();
+        SQLiteDatabase db = helper.getWritableDatabase();
         ContentValues val = new ContentValues ();
         val.put (SQLUserInfoHelper.KEY_IP_ADDRESS, ip);
 
@@ -275,15 +331,17 @@ public class SQLUserInfo {
 
 class SQLUserInfoHelper extends SQLiteOpenHelper {
 
-    public static final int DATABASE_VERSION = 1;
-    public static final String DATABASE_NAME = "USERS_INFO";
-    //public static final String TABLE_NAME = "UsersContacts";
     public static String TABLE_NAME;
-    public static final String KEY_ID = "_id";
-    public static final String KEY_NAME = "name";
-    public static final String KEY_IP_ADDRESS = "ipAddress";
-    public static final String KEY_PUBLIC_KEY = "publicKey";
+
+    public static final int DATABASE_VERSION       = 1;
+
+    public static final String DATABASE_NAME       = "USERS_INFO";
+    public static final String KEY_ID              = "_id";
+    public static final String KEY_NAME            = "name";
+    public static final String KEY_IP_ADDRESS      = "ipAddress";
+    public static final String KEY_PUBLIC_KEY      = "publicKey";
     public static final String KEY_ENCRYPT_AES_KEY = "encryptAESKey";
+    public static final String KEY_STATUS          = "status";
 
     public SQLUserInfoHelper(@Nullable Context context, String tableName) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -293,7 +351,8 @@ class SQLUserInfoHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL("create table " + TABLE_NAME + "(" + KEY_ID + " integer primary key," + KEY_NAME + " text," +
-                KEY_IP_ADDRESS + " text," + KEY_PUBLIC_KEY + " text," + KEY_ENCRYPT_AES_KEY + " text);");
+                KEY_IP_ADDRESS + " text," + KEY_PUBLIC_KEY + " text," + KEY_ENCRYPT_AES_KEY + " text,"
+                + KEY_STATUS + " text);");
     }
 
     @Override
