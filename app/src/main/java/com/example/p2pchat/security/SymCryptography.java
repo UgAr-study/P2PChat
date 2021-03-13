@@ -25,6 +25,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
+import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
 
@@ -96,6 +97,13 @@ public class SymCryptography {
     }
 
     static public byte[] getMacMsg( SecretKey key, String msg) throws NoSuchAlgorithmException, UnsupportedEncodingException, InvalidKeyException {
+        Mac mac = Mac.getInstance("HmacSHA256");
+        mac.init(key);
+        byte[] data = msg.getBytes("UTF-8");
+        return mac.doFinal(data);
+    }
+
+    static public byte[] getMacMsg(PublicKey key, String msg) throws NoSuchAlgorithmException, UnsupportedEncodingException, InvalidKeyException {
         Mac mac = Mac.getInstance("HmacSHA256");
         mac.init(key);
         byte[] data = msg.getBytes("UTF-8");

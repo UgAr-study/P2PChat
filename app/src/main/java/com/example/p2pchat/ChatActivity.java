@@ -100,17 +100,18 @@ public class ChatActivity extends AppCompatActivity {
 
     public void onClickSendButton (View v) {
 
+        SQLUserInfo sqlUserInfo = new SQLUserInfo(this, tableUserInfo);
+
         if (aesKey == null) {
             aesKey = SymCryptography.generateStringSecretKey();
-            SQLUserInfo sqlUserInfo = new SQLUserInfo(this, tableUserInfo);
             sqlUserInfo.updateAESKeyByPublicKey( aesKey, recipientPubKey);
             try {
 
-                MessageObject messageObject = new MessageObject(recipientPubKey,
-                                                                AsymCryptography.encryptMsg(aesKey, AsymCryptography.getPublicKeyFromString(recipientPubKey)).,
-                                                                AsymCryptography);
-                //TODO:
-                TCPSender tcpSender = new TCPSender(messageObject, aesKey);
+                MessageObject messageObject = new MessageObject(myPubKey, recipientPubKey,
+                                                                aesKey, MessageObject.SEND_AES_KEY);
+
+                TCPSender tcpSender = new TCPSender(messageObject,
+                                                    sqlUserInfo.getIpAddressByPublicKey(recipientPubKey).get(0));
                 tcpSender.getObservable()
                         .subscribeOn(Schedulers.newThread())
                         .observeOn(AndroidSchedulers.mainThread())
@@ -146,10 +147,11 @@ public class ChatActivity extends AppCompatActivity {
         }
 
         try {
-            MessageObject messageObject = new MessageObject(recipientPubKey,
+            MessageObject messageObject = new MessageObject(myPubKey,
                                                             message,
                                                             aesKey);
-            TCPSender tcpSender = new TCPSender(messageObject, aesKey);
+            TCPSender tcpSender = new TCPSender(messageObject,
+                                                sqlUserInfo.getIpAddressByPublicKey(recipientPubKey).get(0));
             tcpSender.getObservable()
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
