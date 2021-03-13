@@ -30,6 +30,8 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
+import javax.crypto.SealedObject;
+
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.CompletableObserver;
@@ -97,6 +99,44 @@ public class ChatActivity extends AppCompatActivity {
     public String getUserId() {return recipientId;}
 
     public void onClickSendButton (View v) {
+
+        if (aesKey == null) {
+            aesKey = SymCryptography.generateStringSecretKey();
+            SQLUserInfo sqlUserInfo = new SQLUserInfo(this, tableUserInfo);
+            sqlUserInfo.updateAESKeyByPublicKey( aesKey, recipientPubKey);
+            try {
+
+                MessageObject messageObject = new MessageObject(recipientPubKey,
+                                                                AsymCryptography.encryptMsg(aesKey, AsymCryptography.getPublicKeyFromString(recipientPubKey)).,
+                                                                AsymCryptography);
+                //TODO:
+                TCPSender tcpSender = new TCPSender(messageObject, aesKey);
+                tcpSender.getObservable()
+                        .subscribeOn(Schedulers.newThread())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(new CompletableObserver() {
+                            @Override
+                            public void onSubscribe(@NonNull Disposable d) {
+                                //Nothing
+                            }
+
+                            @Override
+                            public void onComplete() {
+                                Log.e("MyTag", "msg send");
+                            }
+
+                            @Override
+                            public void onError(@NonNull Throwable e) {
+                                Log.e("MyTag", e.getMessage());
+                            }
+                        });
+
+            } catch (NoSuchAlgorithmException | InvalidKeyException | UnsupportedEncodingException e) {
+                Log.e("MyTagCrypto" , "Crypto error, when we send aeskey other user");
+                Toast.makeText(this, "Crypto error: send aes key", Toast.LENGTH_SHORT).show();
+            }
+        }
+
         EditText editText = findViewById(R.id.message);
         String message = editText.getText().toString();
         editText.setText(null);
@@ -105,15 +145,8 @@ public class ChatActivity extends AppCompatActivity {
             return;
         }
 
-        if (aesKey == null) {
-            aesKey = SymCryptography.generateStringSecretKey();
-            SQLUserInfo sqlUserInfo = new SQLUserInfo(this, tableUserInfo);
-            sqlUserInfo.updateAESKeyByPublicKey( aesKey, recipientPubKey);
-        }
-
         try {
             MessageObject messageObject = new MessageObject(recipientPubKey,
-                                                            myPubKey,
                                                             message,
                                                             aesKey);
             TCPSender tcpSender = new TCPSender(messageObject, aesKey);
