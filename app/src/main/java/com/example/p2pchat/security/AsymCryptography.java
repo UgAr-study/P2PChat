@@ -166,7 +166,17 @@ public class AsymCryptography {
         }
     }
 
-    static PublicKey getPublicKeyFromPrivateKey(PrivateKey privateKey) {
+    static public String decryptMsg(SealedObject encryptMsg, PrivateKey privKey) {
+        try {
+            Cipher decrypt = Cipher.getInstance("RSA");
+            decrypt.init(Cipher.DECRYPT_MODE, privKey);
+            return (String) encryptMsg.getObject(decrypt);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    static public PublicKey getPublicKeyFromPrivateKey(PrivateKey privateKey) {
         try {
             KeyFactory kf = KeyFactory.getInstance("RSA");
             RSAPrivateKeySpec priv = kf.getKeySpec(privateKey, RSAPrivateKeySpec.class);
