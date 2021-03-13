@@ -131,13 +131,35 @@ public class MainActivity extends AppCompatActivity implements DialoguesRecycler
     private void setUsersInDialogueFragment () {
         Single<ArrayList<DialogueItem>> singleObservable = Single.create(emmit -> {
             try {
-                ArrayList<String> names = UserInfoTable.getAllNames();
+
                 ArrayList<String> publicKeys = UserInfoTable.getAllPublicKeys();
+                ArrayList<String> ids = UserInfoTable.getAllIds();
+                ArrayList<String> lastMessages = new ArrayList<>();
+                ArrayList<String> names = new ArrayList<>();
+                ArrayList<String> lastTimes = new ArrayList<>();
+
+                for (String id: ids) {
+
+                    SQLUserData curUserData = new SQLUserData(this, id);
+                    MessageItem msgItem = curUserData.loadLastMsg(1).get(0);
+
+                    if (msgItem != null) {
+                        lastMessages.add(msgItem.getMessage());
+                        names.add(msgItem.getName());
+                        lastTimes.add(msgItem.getTimeHoursMinutes());
+                    }
+                }
 
                 ArrayList<DialogueItem> dialogueItems = new ArrayList<>();
 
-                for (int i = 0, end = names.size(); i != end; ++i)
-                    dialogueItems.add(new DialogueItem(names.get(i), "", "00:00", publicKeys.get(i)));
+                for (int i = 0, end = names.size(); i != end; ++i) {
+                    dialogueItems.add(
+                            new DialogueItem(
+                                    names.get(i),
+                                    lastMessages.get(i),
+                                    lastTimes.get(i),
+                                    publicKeys.get(i)));
+                }
 
                 emmit.onSuccess(dialogueItems);
             } catch (Exception e) {

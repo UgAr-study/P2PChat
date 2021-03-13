@@ -100,6 +100,10 @@ public class SQLUserInfo {
         return getAllRowsInColumn(SQLUserInfoHelper.KEY_ENCRYPT_AES_KEY);
     }
 
+    public ArrayList<String> getAllIds () {
+        return getAllRowsInColumn(SQLUserInfoHelper.KEY_ID);
+    }
+
     private ArrayList<String> getCells (String Column, String row, String rowArg) {
 
         ArrayList<String> res = new ArrayList<>();
@@ -172,6 +176,10 @@ public class SQLUserInfo {
 
     public ArrayList<String> getIpAddressById (String id) {
         return getCells(SQLUserInfoHelper.KEY_IP_ADDRESS, SQLUserInfoHelper.KEY_ID, id);
+    }
+
+    public ArrayList<String> getIpAddressByPublicKey (String publicKey) {
+        return getCells(SQLUserInfoHelper.KEY_IP_ADDRESS, SQLUserInfoHelper.KEY_PUBLIC_KEY, publicKey);
     }
 
     public ArrayList<String> getNameByPublicKey (String publicKey) {
