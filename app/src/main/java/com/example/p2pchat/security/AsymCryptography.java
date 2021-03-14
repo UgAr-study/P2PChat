@@ -82,6 +82,23 @@ public class AsymCryptography {
         }
     }
 
+    static public String loadPrivateKeyFromKeyStore(String pwd, SharedPreferences keyStore) {
+        try {
+            String encryptKeyData = keyStore.getString(PRIVATE_KEY, null);
+            String keyData = SymCryptography.decryptByPwdGson(encryptKeyData, pwd);
+
+            BigInteger modulus = readModulusFromString(keyData);
+            BigInteger prExponent = readExponentFromString(keyData);
+            RSAPrivateKeySpec privateSpec = new RSAPrivateKeySpec(modulus, prExponent);
+            KeyFactory factory = KeyFactory.getInstance("RSA");
+            PrivateKey privKey = factory.generatePrivate(privateSpec);
+            return getStringAsymKey(privKey);
+        } catch (Exception e) {
+            Log.e("MyTag|AsymCrypto", "load private key error");
+            return null;
+        }
+    }
+
     static public PublicKey generateAndSaveNewPair(String pwd, SharedPreferences newKeyStore) {
         try {
             keyStore = newKeyStore;
@@ -124,7 +141,7 @@ public class AsymCryptography {
         }
     }
 
-    private BigInteger readModulusFromString(String keyData) {
+    private static BigInteger readModulusFromString(String keyData) {
         int begin = keyData.lastIndexOf("modulus");
         int end = keyData.indexOf('\n', begin);
         String modulusStr = keyData.substring(begin + 9, end);
@@ -141,7 +158,7 @@ public class AsymCryptography {
         return Base64.getEncoder().encodeToString(byte_private_key);
     }
 
-    private BigInteger readExponentFromString(String keyData) {
+    private static BigInteger readExponentFromString(String keyData) {
         int begin = keyData.lastIndexOf("exponent:");
         int end = keyData.indexOf('\n', begin);
         String modulusStr = keyData.substring(begin + 10);
