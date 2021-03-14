@@ -12,6 +12,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
 
 import javax.crypto.BadPaddingException;
@@ -28,17 +29,15 @@ public class MessageObject implements Serializable {
     public static final  boolean SEND_AES_KEY = true;
     public static final  boolean SEND_MESSAGE = false;
 
-    public MessageObject(String fromPublicKey, String messageOrToPubKey, String aesKey, boolean action) throws NoSuchAlgorithmException, InvalidKeyException, UnsupportedEncodingException {
+    public MessageObject(String fromPublicKey, String message, String key, boolean action) throws NoSuchAlgorithmException, InvalidKeyException, UnsupportedEncodingException, InvalidKeySpecException {
+        this.fromPublicKey = fromPublicKey;
 
         if (action == SEND_AES_KEY) {
-            this.msg = AsymCryptography.encryptMsg(aesKey, AsymCryptography.getPublicKeyFromString(messageOrToPubKey));
-            this.secureMac = SymCryptography.getMacMsg(AsymCryptography.getPublicKeyFromString(messageOrToPubKey), aesKey);
-
-            this.fromPublicKey = fromPublicKey;
+            this.msg = AsymCryptography.encryptMsg(message, AsymCryptography.getPublicKeyFromString(key));
+            this.secureMac = SymCryptography.getMacMsg(AsymCryptography.getPublicKeyFromString(key), message);
         } else {
-            this.fromPublicKey = fromPublicKey;
-            this.msg = SymCryptography.encryptMsg(SymCryptography.getSecretKeyByString(aesKey), messageOrToPubKey);
-            this.secureMac = SymCryptography.getMacMsg(SymCryptography.getSecretKeyByString(aesKey), messageOrToPubKey);
+            this.msg = SymCryptography.encryptMsg(SymCryptography.getSecretKeyByString(key), message);
+            this.secureMac = SymCryptography.getMacMsg(SymCryptography.getSecretKeyByString(key), message);
         }
 
         this.action = action;
@@ -52,16 +51,16 @@ public class MessageObject implements Serializable {
         return fromPublicKey;
     }
 
-    public String decrypt(String aesOrPrivateKey) throws NoSuchPaddingException, ClassNotFoundException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException, IOException {
+    public String decrypt(String key) throws NoSuchPaddingException, ClassNotFoundException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException, IOException, InvalidKeySpecException {
         if (action == SEND_MESSAGE) {
-            String decryptMsg = SymCryptography.decryptMsg(SymCryptography.getSecretKeyByString(aesOrPrivateKey), msg);
-            if (!Arrays.equals(SymCryptography.getMacMsg(SymCryptography.getSecretKeyByString(aesOrPrivateKey), decryptMsg), secureMac)) {
+            String decryptMsg = SymCryptography.decryptMsg(SymCryptography.getSecretKeyByString(key), msg);
+            if (!Arrays.equals(SymCryptography.getMacMsg(SymCryptography.getSecretKeyByString(key), decryptMsg), secureMac)) {
                 return null;
             } else {
                 return decryptMsg;
             }
         } else {
-            PrivateKey myPrivateKey = AsymCryptography.getPrivateKeyFromString(aesOrPrivateKey);
+            PrivateKey myPrivateKey = AsymCryptography.getPrivateKeyFromString(key);
             String aesKey = AsymCryptography.decryptMsg(msg, myPrivateKey);
 
             if (aesKey == null) {

@@ -2,6 +2,8 @@ package com.example.p2pchat.security;
 
 import android.renderscript.ScriptIntrinsicYuvToRGB;
 
+import com.example.p2pchat.network.MessageObject;
+
 import org.junit.Test;
 
 import java.security.KeyPair;
@@ -77,6 +79,26 @@ public class SecureTests {
             PublicKey publicKey = AsymCryptography.getPublicKeyFromPrivateKey(keyPair.getPrivate());
             assertEquals(publicKey, keyPair.getPublic());
         } catch (Exception e) {
+            assertTrue(false);
+        }
+    }
+
+    @Test
+    public void Test_AESKEYMSG() {
+        try {
+            AsymCryptography user = new AsymCryptography();
+            SymCryptography aesKey = new SymCryptography();
+            System.out.println(aesKey.getSecretKey());
+            String pubKey = AsymCryptography.getStringAsymKey(user.getPublicKey());
+            String aesKeyString = SymCryptography.getStringKey(aesKey.getSecretKey());
+            MessageObject aesMsg = new MessageObject("user", aesKeyString,
+                                                     pubKey,
+                                                     MessageObject.SEND_AES_KEY);
+            String privateKey = AsymCryptography.getStringAsymKey(user.getPrivateKey());
+            assertEquals(aesMsg.decrypt(privateKey),
+                         aesKeyString);
+        } catch (Exception e) {
+            e.getStackTrace();
             assertTrue(false);
         }
     }

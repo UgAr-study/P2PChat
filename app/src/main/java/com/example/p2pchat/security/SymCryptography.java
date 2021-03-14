@@ -103,9 +103,10 @@ public class SymCryptography {
         return mac.doFinal(data);
     }
 
-    static public byte[] getMacMsg(PublicKey key, String msg) throws NoSuchAlgorithmException, UnsupportedEncodingException, InvalidKeyException {
+    static public byte[] getMacMsg(PublicKey key, String msg) throws NoSuchAlgorithmException, UnsupportedEncodingException, InvalidKeyException, InvalidKeySpecException {
+        String hashKey = getStringHash(AsymCryptography.getStringAsymKey(key));
         Mac mac = Mac.getInstance("HmacSHA256");
-        mac.init(key);
+        mac.init(SymCryptography.generateAESKeyByPwd(hashKey)) ;
         byte[] data = msg.getBytes("UTF-8");
         return mac.doFinal(data);
     }
@@ -166,5 +167,10 @@ public class SymCryptography {
         }
 
         return hexString.toString();
+    }
+
+    public static String getStringKey(SecretKey secretKey) {
+        byte [] byte_key = secretKey.getEncoded();
+        return Base64.getEncoder().encodeToString(byte_key);
     }
 }

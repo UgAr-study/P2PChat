@@ -25,6 +25,7 @@ import com.example.p2pchat.ui.chat.ChatRecyclerViewAdapter;
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
@@ -108,8 +109,7 @@ public class ChatActivity extends AppCompatActivity {
 
             try {
 
-                MessageObject messageObject = new MessageObject(myPubKey, recipientPubKey,
-                        aesKey, MessageObject.SEND_AES_KEY);
+                MessageObject messageObject = new MessageObject(myPubKey, aesKey, recipientPubKey, MessageObject.SEND_AES_KEY);
 
                 TCPSender tcpSender = new TCPSender(messageObject,
                         sqlUserInfo.getIpAddressByPublicKey(recipientPubKey).get(0));
@@ -134,7 +134,7 @@ public class ChatActivity extends AppCompatActivity {
                             }
                         });
 
-            } catch (NoSuchAlgorithmException | InvalidKeyException | UnsupportedEncodingException e) {
+            } catch (NoSuchAlgorithmException | InvalidKeyException | UnsupportedEncodingException | InvalidKeySpecException e) {
                 Log.e("MyTagCrypto" , "Crypto error, when we send aeskey other user");
                 Toast.makeText(this, "Crypto error: send aes key", Toast.LENGTH_SHORT).show();
             }
@@ -175,14 +175,14 @@ public class ChatActivity extends AppCompatActivity {
                             Log.e("MyTag", e.getMessage());
                         }
                     });
-        } catch (NoSuchAlgorithmException | InvalidKeyException | UnsupportedEncodingException e) {
+        } catch (NoSuchAlgorithmException | InvalidKeyException | UnsupportedEncodingException | InvalidKeySpecException e) {
             Toast.makeText(this, "Crypto error", Toast.LENGTH_SHORT).show();
             return;
         }
 
         Calendar currentTime = new GregorianCalendar(TimeZone.getDefault());
         chatRecyclerViewAdapter.addItem(new MessageItem( myName, message, currentTime));
-        sqlUserData.insert(recipientName, currentTime, message);
+        sqlUserData.insert(myName, currentTime, message);
         Log.d("myLogsChatActivity", "Msg saved");
     }
 

@@ -21,6 +21,7 @@ import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.RSAPrivateKeySpec;
 import java.security.spec.RSAPublicKeySpec;
 import java.security.spec.X509EncodedKeySpec;
@@ -48,6 +49,14 @@ public class AsymCryptography {
         } catch (Exception e) {
             return;
         }
+    }
+
+    public PublicKey getPublicKey() {
+        return publicKey;
+    }
+
+    public PrivateKey getPrivateKey() {
+        return privateKey;
     }
 
     static SharedPreferences getKeyStore() {
@@ -93,10 +102,12 @@ public class AsymCryptography {
     static public PrivateKey getPrivateKeyFromString(String keyStr) {
         try {
             byte[] data = Base64.getDecoder().decode((keyStr.getBytes()));
-            X509EncodedKeySpec spec = new X509EncodedKeySpec(data);
+            byte [] pkcs8EncodedBytes = Base64.getDecoder().decode(keyStr);
+            PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(pkcs8EncodedBytes);
             KeyFactory fact = KeyFactory.getInstance("RSA");
-            return fact.generatePrivate(spec);
+            return fact.generatePrivate(keySpec);
         } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+            Log.e("MyLog|AsymCrypto", "error in getPrivateKeyFromString");
             return null;
         }
     }
@@ -123,6 +134,11 @@ public class AsymCryptography {
     static public String getStringAsymKey(PublicKey pubKey) {
         byte [] byte_pubkey = pubKey.getEncoded();
         return Base64.getEncoder().encodeToString(byte_pubkey);
+    }
+
+    static public String getStringAsymKey(PrivateKey privateKey) {
+        byte [] byte_private_key = privateKey.getEncoded();
+        return Base64.getEncoder().encodeToString(byte_private_key);
     }
 
     private BigInteger readExponentFromString(String keyData) {
