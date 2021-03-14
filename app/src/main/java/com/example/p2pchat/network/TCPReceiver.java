@@ -43,6 +43,8 @@ import io.reactivex.rxjava3.internal.operators.observable.ObservableReduceMaybe;
 public class TCPReceiver {
 
     private final int port = 4000;
+    private final String TYPE_KEY = "key";
+    private final String TYPE_MESSAGE = "message";
 
     private String userPassword;
     private MessageObject encryptedMessage; //TODO: change to Pair <SealObject, PublicKey>
@@ -103,17 +105,31 @@ public class TCPReceiver {
         inputStream = new ObjectInputStream(socket.getInputStream());
     }
 
+    //TODO: what to do if this is new user, which we don't have in our table, but he does?
     private String[] ReceiveMessage() throws IOException, ClassNotFoundException, IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException {
         encryptedMessage = (MessageObject) inputStream.readObject();
 
-        String fromPublicKey = encryptedMessage.from();
-        String aesKey        = UserInfoTable.getAESKeyByPublicKey(fromPublicKey).get(0);
-        String message       = encryptedMessage.decrypt(aesKey);
+        String fromPublicKey = encryptedMessage.getSenderPublicKey();
+        String aesKey, type, message;
+
+        if (encryptedMessage.isKeyMsg()) {
+
+            String privateKey = getOwnerPrivateKey();
+            aesKey = encryptedMessage.decrypt(privateKey);
+            message = aesKey;
+            type = TYPE_KEY;
+
+        } else {
+
+            aesKey = UserInfoTable.getAESKeyByPublicKey(fromPublicKey).get(0);
+            message = encryptedMessage.decrypt(aesKey);
+            type = TYPE_MESSAGE;
+        }
 
         if (fromPublicKey == null || aesKey == null || message == null)
             return null;
 
-        return new String[] {message, fromPublicKey};
+        return new String[] {message, fromPublicKey, type};
     }
 
     private MessageInfo ParseMessage(String[] rcvMessage) {
@@ -123,15 +139,23 @@ public class TCPReceiver {
 
         String message       = rcvMessage[0];
         String fromPublicKey = rcvMessage[1];
-        String name          = UserInfoTable.getNameByPublicKey(fromPublicKey).get(0);
-        String id            = UserInfoTable.getIdByPublicKey(fromPublicKey).get(0);
+        String type          = rcvMessage[2];
 
-        Calendar time        = getCurrentTime();
+        if (type.equals(TYPE_MESSAGE)) {
 
-        MessageItem msgItem = new MessageItem(name, message, time);
-        MessageInfo messageInfo = new MessageInfo(msgItem, id, fromPublicKey);
-        addToDialogueTable(msgItem, id);
-        return messageInfo;
+            String name   = UserInfoTable.getNameByPublicKey(fromPublicKey).get(0);
+            String id     = UserInfoTable.getIdByPublicKey(fromPublicKey).get(0);
+            Calendar time = getCurrentTime();
+
+            MessageItem msgItem = new MessageItem(name, message, time);
+            MessageInfo messageInfo = new MessageInfo(msgItem, id, fromPublicKey);
+            addToDialogueTable(msgItem, id);
+            return messageInfo;
+
+        } else {
+            UserInfoTable.updateAESKeyByPublicKey(message, fromPublicKey);
+            return null;
+        }
     }
 
     private void CloseSocket() throws IOException {
@@ -149,6 +173,11 @@ public class TCPReceiver {
 
     private void addToDialogueTable(MessageItem item, String id) {
         SQLUserData.insertByIdentifier(id, item, context);
+    }
+
+    private String getOwnerPrivateKey() {
+        //TODO: get real private key
+        return null;
     }
 }
 

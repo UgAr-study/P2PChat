@@ -105,6 +105,7 @@ public class ChatActivity extends AppCompatActivity {
         if (aesKey == null) {
             aesKey = SymCryptography.generateStringSecretKey();
             sqlUserInfo.updateAESKeyByPublicKey( aesKey, recipientPubKey);
+
             try {
 
                 MessageObject messageObject = new MessageObject(myPubKey, recipientPubKey,
@@ -112,6 +113,7 @@ public class ChatActivity extends AppCompatActivity {
 
                 TCPSender tcpSender = new TCPSender(messageObject,
                         sqlUserInfo.getIpAddressByPublicKey(recipientPubKey).get(0));
+
                 tcpSender.getObservable()
                         .subscribeOn(Schedulers.newThread())
                         .observeOn(AndroidSchedulers.mainThread())
@@ -141,17 +143,19 @@ public class ChatActivity extends AppCompatActivity {
         EditText editText = findViewById(R.id.message);
         String message = editText.getText().toString();
         editText.setText(null);
+
         if (message.trim().isEmpty()) {
             Toast.makeText(this, "Empty message", Toast.LENGTH_SHORT).show();
             return;
         }
 
         try {
-            MessageObject messageObject = new MessageObject(myPubKey,
-                    message,
-                    aesKey);
+            MessageObject messageObject = new MessageObject(myPubKey, message,
+                    aesKey, MessageObject.SEND_MESSAGE);
+
             TCPSender tcpSender = new TCPSender(messageObject,
                     sqlUserInfo.getIpAddressByPublicKey(recipientPubKey).get(0));
+
             tcpSender.getObservable()
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
