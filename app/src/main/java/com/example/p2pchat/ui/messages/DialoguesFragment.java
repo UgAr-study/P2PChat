@@ -33,7 +33,7 @@ public class DialoguesFragment extends Fragment {
         DialoguesFragment f = new DialoguesFragment();
         //f.context = c;
         f.dialogueAdapter = new DialoguesRecyclerViewAdapter(c, listener);
-        Log.e("MyTAG", "DialogFragment: \"constructor\"");
+        Log.d("DialogFragment", "\"constructor\"");
         return f;
     }
 
@@ -41,7 +41,7 @@ public class DialoguesFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
-        Log.e("MyTAG", "DialogFragment: onCreateView");
+        Log.d("DialogFragment", "onCreateView");
         View view = inflater.inflate(R.layout.fragment_dialogues, container, false);
 
         dialogueRecyclerView = view.findViewById(R.id.dialogue_recyclerView);
@@ -57,50 +57,59 @@ public class DialoguesFragment extends Fragment {
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
-        Log.e("MyTAG", "DialogFragment: onAttach");
+        Log.d("DialogFragment", "onAttach");
     }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.e("MyTAG", "DialogFragment: onCreate");
+        Log.d("DialogFragment", "onCreate");
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        Log.e("MyTAG", "DialogFragment: onPause");
+        Log.d("DialogFragment", "onPause");
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        Log.e("MyTAG", "DialogFragment: onDestroy");
+        Log.d("DialogFragment", "onDestroy");
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
-        Log.e("MyTAG", "DialogFragment: onDetach");
+        Log.d("DialogFragment", "onDetach");
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        Log.e("MyTAG", "DialogFragment: onResume");
+        Log.d("DialogFragment", "onResume");
     }
 
     public void onUpdateDialoguesList (DialogueItem dItem) {
 
         if (dItem == null) {
+            Log.e("DialogFragment", "onUpdateDialoguesList: dItem is null");
             Toast.makeText(getContext(), "Fail: try to add null object", Toast.LENGTH_SHORT).show();
             return;
         }
 
         dialogueAdapter.addItem(dItem);
+        Log.d("DialogFragment", "onUpdateDialoguesList: item added");
     }
 
     public void onUpdateLastMessage(MessageInfo messageInfo) {
+
+        if (messageInfo == null) {
+            Log.e("DialogFragment", "onUpdateLastMessage: messageInfo is null");
+            return;
+        }
+
         dialogueAdapter.setLastMessage(messageInfo);
+        Log.d("DialogFragment", "onUpdateLastMessage: messageInfo added");
     }
 }

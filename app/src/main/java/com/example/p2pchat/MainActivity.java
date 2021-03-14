@@ -108,7 +108,6 @@ public class MainActivity extends AppCompatActivity implements DialoguesRecycler
         userPublicKey = intent.getStringExtra(EXTRA_USER_PUBLIC_KEY);
         userName      = intent.getStringExtra(EXTRA_USER_NAME);
         userPassword  = intent.getStringExtra(EXTRA_USER_PASSWORD);
-
     }
 
     private void defineFragments() {
@@ -134,19 +133,21 @@ public class MainActivity extends AppCompatActivity implements DialoguesRecycler
 
                 ArrayList<String> publicKeys = UserInfoTable.getAllPublicKeys();
                 ArrayList<String> ids = UserInfoTable.getAllIds();
+                ArrayList<String> names = UserInfoTable.getAllNames();
                 ArrayList<String> lastMessages = new ArrayList<>();
-                ArrayList<String> names = new ArrayList<>();
                 ArrayList<String> lastTimes = new ArrayList<>();
 
                 for (String id: ids) {
 
                     SQLUserData curUserData = new SQLUserData(this, id);
-                    MessageItem msgItem = curUserData.loadLastMsg(1).get(0);
+                    ArrayList<MessageItem> msgItems = curUserData.loadLastMsg(1);
 
-                    if (msgItem != null) {
-                        lastMessages.add(msgItem.getMessage());
-                        names.add(msgItem.getName());
-                        lastTimes.add(msgItem.getTimeHoursMinutes());
+                    if (msgItems.isEmpty()) {
+                        lastMessages.add("No messages yet");
+                        lastTimes.add(null);
+                    } else {
+                        lastMessages.add(msgItems.get(0).getMessage());
+                        lastTimes.add(msgItems.get(0).getTimeHoursMinutes());
                     }
                 }
 
@@ -173,14 +174,13 @@ public class MainActivity extends AppCompatActivity implements DialoguesRecycler
                 .subscribe(getFillDialoguesObserver());
     }
 
-    private static int test_count = 0;
     public void setOnClickTestButton() {
         Button test_btn = findViewById(R.id.test_button);
         test_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 dialoguesFragment.onUpdateDialoguesList(new DialogueItem(userName, "Test Text", "00:00", userPublicKey));
-                test_count++;
+
                 Toast.makeText(MainActivity.this, "TEST", Toast.LENGTH_SHORT).show();
             }
         });
@@ -224,6 +224,7 @@ public class MainActivity extends AppCompatActivity implements DialoguesRecycler
             @Override
             public void onSubscribe(@io.reactivex.rxjava3.annotations.NonNull Disposable d) {
                 //do nothing yet
+                Log.d("MainActivity", "MCReceiver: started");
             }
 
             @Override
@@ -235,7 +236,7 @@ public class MainActivity extends AppCompatActivity implements DialoguesRecycler
                     String testTime = "00:00";
                     dialoguesFragment.onUpdateDialoguesList(new DialogueItem(item.getName(), testMessage, testTime, item.getPublicKey()));
                 } else {
-                    //TODO: implement onUpgradeState method
+                    //TODO: implement onUpgradeState method in DialoguesFragment
                     //dialoguesFragment.onUpdateState(item.getPublicKey());
                 }
             }
@@ -243,14 +244,14 @@ public class MainActivity extends AppCompatActivity implements DialoguesRecycler
             @Override
             public void onError(@io.reactivex.rxjava3.annotations.NonNull Throwable e) {
                 Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
-                Log.e("MyTag", e.getMessage()); //TODO delete it
+                Log.e("MainActivity", "MCReceiverObserver: " + e.getMessage()); //TODO delete it
             }
 
             @Override
             public void onComplete() {
-                String text = "MCReceiver has completed";
+                String text = "has completed";
                 Toast.makeText(MainActivity.this, text, Toast.LENGTH_LONG).show();
-                Log.e("MyTag", text); //TODO delete it
+                Log.d("MainActivity", "MCReceiverObserver: " + text); //TODO delete it
             }
         };
     }
@@ -260,6 +261,7 @@ public class MainActivity extends AppCompatActivity implements DialoguesRecycler
             @Override
             public void onSubscribe(@io.reactivex.rxjava3.annotations.NonNull Disposable d) {
                 //do nothing yet
+                Log.d ("MainActivity", "Interrogator: started");
             }
 
             @Override
@@ -270,14 +272,14 @@ public class MainActivity extends AppCompatActivity implements DialoguesRecycler
             @Override
             public void onError(@io.reactivex.rxjava3.annotations.NonNull Throwable e) {
                 Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
-                Log.e("MyTag", e.getMessage()); //TODO delete it
+                Log.e("MainActivity", "InterrogatorObserver: " + e.getMessage()); //TODO delete it
             }
 
             @Override
             public void onComplete() {
-                String text = "Interrogator has completed";
+                String text = "has completed";
                 Toast.makeText(MainActivity.this, text, Toast.LENGTH_LONG).show();
-                Log.e("MyTag", text); //TODO delete it
+                Log.d("MainActivity", "InterrogatorObserver: " + text); //TODO delete it
             }
         };
     }
@@ -287,11 +289,14 @@ public class MainActivity extends AppCompatActivity implements DialoguesRecycler
             @Override
             public void onSubscribe(@io.reactivex.rxjava3.annotations.NonNull Disposable d) {
                 // do nothing yet
+                Log.d ("MainActivity", "TCPReceiver: started");
             }
 
             @Override
             public void onNext(@io.reactivex.rxjava3.annotations.NonNull MessageInfo messageInfo) {
                 // show new message to user
+                Log.d ("MainActivity", "TCPReceiverObserver: msg = ["
+                        + messageInfo.getMessageItem().getMessage() + "]");
                 dialoguesFragment.onUpdateLastMessage(messageInfo);
                 ChatActivity.loadNewMsg(messageInfo);
             }
@@ -299,14 +304,14 @@ public class MainActivity extends AppCompatActivity implements DialoguesRecycler
             @Override
             public void onError(@io.reactivex.rxjava3.annotations.NonNull Throwable e) {
                 Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
-                Log.e("MyTag", e.getMessage()); //TODO delete it
+                Log.e("MainActivity", "TCPReceiverObserver: " + e.getMessage()); //TODO delete it
             }
 
             @Override
             public void onComplete() {
-                String text = "TCPReceiver has completed";
+                String text = "has completed";
                 Toast.makeText(MainActivity.this, text, Toast.LENGTH_LONG).show();
-                Log.e("MyTag", text); //TODO delete it
+                Log.d("MainActivity", "TCPReceiverObserver: " + text); //TODO delete it
             }
         };
     }
@@ -316,18 +321,22 @@ public class MainActivity extends AppCompatActivity implements DialoguesRecycler
             @Override
             public void onSubscribe(@io.reactivex.rxjava3.annotations.NonNull Disposable d) {
                 // do nothing
+                Log.d ("MainActivity", "Fill dialogues started");
             }
 
             @Override
             public void onSuccess(@io.reactivex.rxjava3.annotations.NonNull ArrayList<DialogueItem> dialogueItems) {
-                for (DialogueItem dItem: dialogueItems)
+                for (DialogueItem dItem: dialogueItems) {
                     dialoguesFragment.onUpdateDialoguesList(dItem);
+                    Log.d("MainActivity", "FillDialoguesObserver: name = ["
+                            + dItem.getName() + "]");
+                }
             }
 
             @Override
             public void onError(@io.reactivex.rxjava3.annotations.NonNull Throwable e) {
                 Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
-                Log.e("MyTag", e.getMessage()); //TODO delete it
+                Log.e("MainActivity", "FillDialoguesObserver: " + e.getMessage()); //TODO delete it
             }
         };
     }

@@ -6,6 +6,7 @@ import com.example.p2pchat.security.AsymCryptography;
 import com.example.p2pchat.security.SymCryptography;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -19,7 +20,7 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SealedObject;
 import javax.crypto.SecretKey;
 
-public class MessageObject {
+public class MessageObject implements Serializable {
     private final String from;
     private final SealedObject msg;
     private final byte[] secureMac;

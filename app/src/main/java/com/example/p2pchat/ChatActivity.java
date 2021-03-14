@@ -108,10 +108,10 @@ public class ChatActivity extends AppCompatActivity {
             try {
 
                 MessageObject messageObject = new MessageObject(myPubKey, recipientPubKey,
-                                                                aesKey, MessageObject.SEND_AES_KEY);
+                        aesKey, MessageObject.SEND_AES_KEY);
 
                 TCPSender tcpSender = new TCPSender(messageObject,
-                                                    sqlUserInfo.getIpAddressByPublicKey(recipientPubKey).get(0));
+                        sqlUserInfo.getIpAddressByPublicKey(recipientPubKey).get(0));
                 tcpSender.getObservable()
                         .subscribeOn(Schedulers.newThread())
                         .observeOn(AndroidSchedulers.mainThread())
@@ -148,10 +148,10 @@ public class ChatActivity extends AppCompatActivity {
 
         try {
             MessageObject messageObject = new MessageObject(myPubKey,
-                                                            message,
-                                                            aesKey);
+                    message,
+                    aesKey);
             TCPSender tcpSender = new TCPSender(messageObject,
-                                                sqlUserInfo.getIpAddressByPublicKey(recipientPubKey).get(0));
+                    sqlUserInfo.getIpAddressByPublicKey(recipientPubKey).get(0));
             tcpSender.getObservable()
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())

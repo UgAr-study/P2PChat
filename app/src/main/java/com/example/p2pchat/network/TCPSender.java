@@ -51,10 +51,11 @@ public class TCPSender {
         InetAddress ipAddr = InetAddress.getByName(ipAddress);
         socket = new Socket();
         socket.connect(new InetSocketAddress(ipAddr, serverPort), TIME_OUT);
+        //TODO: if socket didn't connect, what is next?
         out = new ObjectOutputStream(socket.getOutputStream());
     }
 
-    private void SendMessage() throws IOException { //TODO: implement cryptography
+    private void SendMessage() throws IOException {
         out.writeObject(message);
         out.flush();
     }

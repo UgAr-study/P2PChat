@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.StrictMode;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -16,6 +17,7 @@ import com.example.p2pchat.security.SymCryptography;
 
 import java.net.InetAddress;
 import java.net.NetworkInterface;
+import java.net.UnknownHostException;
 import java.security.PublicKey;
 import java.util.Enumeration;
 
@@ -24,8 +26,8 @@ public class LoginActivity extends AppCompatActivity {
     private EditText loginField;
     private EditText passwordField;
     public static final String EXTRA_PASSWORD = "password";
-    SharedPreferences loginData;
-    SharedPreferences keyStore;
+    private SharedPreferences loginData;
+    private SharedPreferences keyStore;
 
 
     @Override
@@ -60,12 +62,15 @@ public class LoginActivity extends AppCompatActivity {
         intent.putExtra(EXTRA_PASSWORD, password);
 
         if (loginData.getAll().isEmpty()) {
+            String localIP;
             SharedPreferences.Editor userInfoEditor = loginData.edit();
             try {
                 String encryptPwd = SymCryptography.getStringHash(password);
 
                 userInfoEditor.putString(name, encryptPwd);
                 userInfoEditor.apply();
+
+                localIP = getLocalIp();
             } catch (Exception e) {
                 Toast.makeText(this, "Sym Crypto ERROR\n", Toast.LENGTH_LONG).show();
                 return;
@@ -73,7 +78,7 @@ public class LoginActivity extends AppCompatActivity {
 
             String userPublicKey = AsymCryptography.getStringAsymKey(generateNewPairAsymKey(password));
             SQLUserInfo sqlUserInfo = new SQLUserInfo(this, MainActivity.USER_INFO_TABLE_NAME);
-            String localIP = getLocalIp();
+
             sqlUserInfo.WriteDB(name,  localIP, userPublicKey);
 
             intent.putExtra(MainActivity.EXTRA_USER_NAME, name);
@@ -109,8 +114,12 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-    private String getLocalIp () {
+    private String getLocalIp () throws UnknownHostException {
 
+        InetAddress inetAddress = InetAddress.getLocalHost();
+        String ip = inetAddress.getHostAddress();
+        Log.e ("LoginActivity", "ip = " + ip);
+        return ip;/*
         String res = "";
         try {
             Enumeration networkInterfaces = NetworkInterface.getNetworkInterfaces();  // gets All networkInterfaces of your device
@@ -118,7 +127,7 @@ public class LoginActivity extends AppCompatActivity {
                 NetworkInterface inet = (NetworkInterface) networkInterfaces.nextElement();
                 Enumeration address = inet.getInetAddresses();
                 while (address.hasMoreElements()) {
-                    InetAddress inetAddress = (InetAddress) address.nextElement();
+                    //InetAddress inetAddress = (InetAddress) address.nextElement();
                     if (inetAddress.isSiteLocalAddress()) {
                         res =  res.concat(inetAddress.getHostAddress() + "\n");
                     }
@@ -128,7 +137,7 @@ public class LoginActivity extends AppCompatActivity {
             res = e.getMessage();
         }
 
-        return res;
+        return res;*/
     }
 
     private PublicKey generateNewPairAsymKey(String pwd) {
