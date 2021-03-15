@@ -23,7 +23,7 @@ import javax.crypto.SealedObject;
 public class MessageObject implements Serializable {
     private final String fromPublicKey;
     private final SealedObject msg;
-    private final byte[] secureMac;
+    private final String secureMac;
     private boolean action;
 
     public static final  boolean SEND_AES_KEY = true;
@@ -51,29 +51,40 @@ public class MessageObject implements Serializable {
         return fromPublicKey;
     }
 
-    public String decrypt(String key) throws NoSuchPaddingException, ClassNotFoundException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException, IOException, InvalidKeySpecException {
+    public String decrypt(String aesKey) throws NoSuchPaddingException, ClassNotFoundException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException, IOException, InvalidKeySpecException {
         if (action == SEND_MESSAGE) {
-            String decryptMsg = SymCryptography.decryptMsg(SymCryptography.getSecretKeyByString(key), msg);
-            if (!Arrays.equals(SymCryptography.getMacMsg(SymCryptography.getSecretKeyByString(key), decryptMsg), secureMac)) {
+            String decryptMsg = SymCryptography.decryptMsg(SymCryptography.getSecretKeyByString(aesKey), msg);
+            if (!SymCryptography.getMacMsg(SymCryptography.getSecretKeyByString(aesKey), decryptMsg).equals(secureMac)) {
                 return null;
             } else {
                 return decryptMsg;
             }
         } else {
-            PrivateKey myPrivateKey = AsymCryptography.getPrivateKeyFromString(key);
-            String aesKey = AsymCryptography.decryptMsg(msg, myPrivateKey);
+            Log.e("MyTag|MessageObject", "an attempt to decrypt with the wrong key");
+            return null;
+        }
+    }
 
-            if (aesKey == null) {
-                Log.e("MyTag|Crypto", "Error in decrypt aesKey");
-                throw new ExceptionInInitializerError();
-            }
+    public String decryptAesMsg(String privateKey) throws InvalidKeySpecException, NoSuchAlgorithmException, InvalidKeyException, UnsupportedEncodingException {
+        if (action != SEND_AES_KEY) {
+            Log.e("MyTag|MessageObject", "an attempt to decrypt with the wrong key");
+            return null;
+        }
 
-            PublicKey myPubKey = AsymCryptography.getPublicKeyFromPrivateKey(myPrivateKey);
-            if (!Arrays.equals(SymCryptography.getMacMsg(myPubKey, aesKey), secureMac)) {
-                return null;
-            } else {
-                return aesKey;
-            }
+        PrivateKey privateKeyString = AsymCryptography.getPrivateKeyFromString(privateKey);
+        String aesKeyString = AsymCryptography.decryptMsg(msg, privateKeyString);
+
+        if (aesKeyString == null) {
+            Log.e("MyTag|Crypto", "Error in decrypt aesKey");
+            throw new ExceptionInInitializerError();
+        }
+
+        PublicKey pubKeyString = AsymCryptography.getPublicKeyFromPrivateKey(privateKeyString);
+        String currentSecureMac = SymCryptography.getMacMsg(pubKeyString, aesKeyString);
+        if (!currentSecureMac.equals(secureMac)) {
+            return null;
+        } else {
+            return aesKeyString;
         }
     }
 }

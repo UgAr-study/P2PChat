@@ -89,26 +89,26 @@ public class SymCryptography {
         return data.getObject(cipher).toString();
     }
 
-    public byte[] getMacMsg(String msg) throws NoSuchAlgorithmException, InvalidKeyException, UnsupportedEncodingException {
+    public String getMacMsg(String msg) throws NoSuchAlgorithmException, InvalidKeyException, UnsupportedEncodingException {
         Mac mac = Mac.getInstance("HmacSHA256");
         mac.init(secretKey);
         byte[] data = msg.getBytes("UTF-8");
-        return mac.doFinal(data);
+        return Base64.getEncoder().encodeToString(mac.doFinal(data));
     }
 
-    static public byte[] getMacMsg( SecretKey key, String msg) throws NoSuchAlgorithmException, UnsupportedEncodingException, InvalidKeyException {
+    static public String getMacMsg(SecretKey key, String msg) throws NoSuchAlgorithmException, UnsupportedEncodingException, InvalidKeyException {
         Mac mac = Mac.getInstance("HmacSHA256");
         mac.init(key);
         byte[] data = msg.getBytes("UTF-8");
-        return mac.doFinal(data);
+        return Base64.getEncoder().encodeToString(mac.doFinal(data));
     }
 
-    static public byte[] getMacMsg(PublicKey key, String msg) throws NoSuchAlgorithmException, UnsupportedEncodingException, InvalidKeyException, InvalidKeySpecException {
+    static public String getMacMsg(PublicKey key, String msg) throws NoSuchAlgorithmException, UnsupportedEncodingException, InvalidKeyException, InvalidKeySpecException {
         String hashKey = getStringHash(AsymCryptography.getStringAsymKey(key));
         Mac mac = Mac.getInstance("HmacSHA256");
         mac.init(SymCryptography.generateAESKeyByPwd(hashKey)) ;
         byte[] data = msg.getBytes("UTF-8");
-        return mac.doFinal(data);
+        return Base64.getEncoder().encodeToString(mac.doFinal(data));
     }
 
     static public SealedObject encryptByPwd(String msg, String pwd) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, IOException, IllegalBlockSizeException, InvalidKeySpecException {
@@ -149,7 +149,7 @@ public class SymCryptography {
         return SymCryptography.decryptByPwd(sobj, pwd);
     }
 
-    private static SecretKey generateAESKeyByPwd(String pwd) throws NoSuchAlgorithmException, InvalidKeySpecException {
+    public static SecretKey generateAESKeyByPwd(String pwd) throws NoSuchAlgorithmException, InvalidKeySpecException {
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
         digest.update(pwd.getBytes());
         byte[] encodedhash = digest.digest(pwd.getBytes(StandardCharsets.UTF_8));
