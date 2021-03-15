@@ -59,7 +59,7 @@ public class AsymCryptography {
         return privateKey;
     }
 
-    static SharedPreferences getKeyStore() {
+    static public SharedPreferences getKeyStore() {
         return keyStore;
     }
 
@@ -97,6 +97,10 @@ public class AsymCryptography {
             Log.e("MyTag|AsymCrypto", "load private key error");
             return null;
         }
+    }
+
+    static public void setKeyStore(SharedPreferences kStore) {
+        keyStore = kStore;
     }
 
     static public PublicKey generateAndSaveNewPair(String pwd, SharedPreferences newKeyStore) {

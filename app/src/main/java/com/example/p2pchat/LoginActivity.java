@@ -100,6 +100,8 @@ public class LoginActivity extends AppCompatActivity {
                         String adminPublicKey = sqlUserInfo.getPublicKeyById(adminId).get(0);
                         intent.putExtra(MainActivity.EXTRA_USER_PUBLIC_KEY, adminPublicKey);
                         sqlUserInfo.updateIpByPublicKey(getLocalIp(), adminPublicKey);
+                        keyStore = getSharedPreferences(AsymCryptography.KEY_STORE_NAME, MODE_PRIVATE);
+                        AsymCryptography.setKeyStore(keyStore);
 
                         startActivity(intent);
                     } else {
