@@ -110,13 +110,20 @@ public class TCPReceiver {
     private String[] ReceiveMessage() throws IOException, ClassNotFoundException, IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeySpecException {
         encryptedMessage = (MessageObject) inputStream.readObject();
 
+        String fromIpAddress = null;
+
+        if (socket != null)
+            fromIpAddress = socket.getInetAddress().getHostAddress();
+        else
+            Log.e ("TCPReceiver", "ReceiveMessage: socket is null");
+
         String fromPublicKey = encryptedMessage.getSenderPublicKey();
         String aesKey, type, message;
 
         if (encryptedMessage.isKeyMsg()) {
 
             String privateKey = getOwnerPrivateKey();
-            aesKey = encryptedMessage.decrypt(privateKey);
+            aesKey = encryptedMessage.decryptAesMsg(privateKey);
             message = aesKey;
             type = TYPE_KEY;
 
@@ -129,6 +136,8 @@ public class TCPReceiver {
 
         if (fromPublicKey == null || aesKey == null || message == null)
             return null;
+
+        AddNewUser (fromPublicKey, fromIpAddress, aesKey);
 
         return new String[] {message, fromPublicKey, type};
     }
@@ -186,5 +195,15 @@ public class TCPReceiver {
         }
 
         return privateKey;
+    }
+
+    private void AddNewUser(String publicKey, String ipAddress, String aesKey) {
+        if (ipAddress == null)
+            return;
+
+        if (UserInfoTable.isPublicKeyInTable(publicKey))
+            return;
+
+        UserInfoTable.WriteDB("No Name", ipAddress, publicKey, aesKey);
     }
 }

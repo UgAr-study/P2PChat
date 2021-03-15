@@ -25,7 +25,6 @@ public class LoginActivity extends AppCompatActivity {
 
     private EditText loginField;
     private EditText passwordField;
-    public static final String EXTRA_PASSWORD = "password";
     private SharedPreferences loginData;
     private SharedPreferences keyStore;
 
@@ -59,7 +58,7 @@ public class LoginActivity extends AppCompatActivity {
         String password = passwordField.getText().toString();
 
         Intent intent = new Intent(this, MainActivity.class);
-        intent.putExtra(EXTRA_PASSWORD, password);
+        intent.putExtra(MainActivity.EXTRA_USER_PASSWORD, password);
 
         if (loginData.getAll().isEmpty()) {
             String localIP;
