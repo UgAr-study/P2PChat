@@ -67,14 +67,9 @@ public class AsymCryptography {
     public AsymCryptography(String pwd, SharedPreferences keyStore) {
         try {
             String encryptKeyData = keyStore.getString(PRIVATE_KEY, null);
-            String keyData = SymCryptography.decryptByPwdGson(encryptKeyData, pwd);
-
-            BigInteger modulus = readModulusFromString(keyData);
-            BigInteger prExponent = readExponentFromString(keyData);
-            RSAPrivateKeySpec privateSpec = new RSAPrivateKeySpec(modulus, prExponent);
-            KeyFactory factory = KeyFactory.getInstance("RSA");
-            privateKey = factory.generatePrivate(privateSpec);
-            publicKey = getPublicKeyFromPrivateKey(privateKey);
+            String privateKeyString = SymCryptography.decryptByPwdGson(encryptKeyData, pwd);
+            privateKey = AsymCryptography.getPrivateKeyFromString(privateKeyString);
+            publicKey = AsymCryptography.getPublicKeyFromPrivateKey(privateKey);
         } catch (Exception e) {
             privateKey = null;
             publicKey = null;
@@ -85,13 +80,8 @@ public class AsymCryptography {
     static public String loadPrivateKeyFromKeyStore(String pwd, SharedPreferences keyStore) {
         try {
             String encryptKeyData = keyStore.getString(PRIVATE_KEY, null);
-            String keyData = SymCryptography.decryptByPwdGson(encryptKeyData, pwd);
-
-            BigInteger modulus = readModulusFromString(keyData);
-            BigInteger prExponent = readExponentFromString(keyData);
-            RSAPrivateKeySpec privateSpec = new RSAPrivateKeySpec(modulus, prExponent);
-            KeyFactory factory = KeyFactory.getInstance("RSA");
-            PrivateKey privKey = factory.generatePrivate(privateSpec);
+            String privateKeyString = SymCryptography.decryptByPwdGson(encryptKeyData, pwd);
+            PrivateKey privKey = AsymCryptography.getPrivateKeyFromString(privateKeyString);
             return getStringAsymKey(privKey);
         } catch (Exception e) {
             Log.e("MyTag|AsymCrypto", "load private key error");
@@ -110,7 +100,7 @@ public class AsymCryptography {
             keyPairGenerator.initialize(4096);
             KeyPair keyPair = keyPairGenerator.generateKeyPair();
 
-            String encryptKeyString = SymCryptography.encryptByPwdGson(keyPair.getPrivate().toString(), pwd);
+            String encryptKeyString = SymCryptography.encryptByPwdGson(AsymCryptography.getStringAsymKey(keyPair.getPrivate()), pwd);
             SharedPreferences.Editor editor = keyStore.edit();
             editor.putString(PRIVATE_KEY, encryptKeyString);
             editor.apply();
@@ -147,7 +137,7 @@ public class AsymCryptography {
 
     private static BigInteger readModulusFromString(String keyData) {
         int begin = keyData.lastIndexOf("modulus");
-        int end = keyData.indexOf('\n', begin);
+        int end = keyData.indexOf(',', begin);
         String modulusStr = keyData.substring(begin + 9, end);
         return new BigInteger(modulusStr);
     }

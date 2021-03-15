@@ -145,5 +145,4 @@ public class LoginActivity extends AppCompatActivity {
         keyStore = getSharedPreferences(AsymCryptography.KEY_STORE_NAME, MODE_PRIVATE);
         return AsymCryptography.generateAndSaveNewPair(pwd, keyStore);
     }
-
 }
