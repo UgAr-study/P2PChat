@@ -125,18 +125,18 @@ public class ChatActivity extends AppCompatActivity {
 
                             @Override
                             public void onComplete() {
-                                Log.e("MyTag", "msg send");
+                                Log.d("ChatActivity", "TCPReceiver observer: aes key was sent");
                             }
 
                             @Override
                             public void onError(@NonNull Throwable e) {
-                                Log.e("MyTag", e.getMessage());
+                                Log.e("ChatActivity", "TCPReceiver observer [sending aes key failed]: " + e.getMessage());
                             }
                         });
 
             } catch (NoSuchAlgorithmException | InvalidKeyException | UnsupportedEncodingException | InvalidKeySpecException e) {
-                Log.e("MyTagCrypto" , "Crypto error, when we send aeskey other user");
-                Toast.makeText(this, "Crypto error: send aes key", Toast.LENGTH_SHORT).show();
+                Log.e("ChatActivityCrypto" , "Crypto error, when we send aeskey to other user");
+                Toast.makeText(this, "Crypto error: send aes key failed", Toast.LENGTH_SHORT).show();
             }
         }
 
@@ -167,12 +167,12 @@ public class ChatActivity extends AppCompatActivity {
 
                         @Override
                         public void onComplete() {
-                            Log.e("MyTag", "msg send");
+                            Log.d("ChatActivity", "TCPReceiver observer: message was sent");
                         }
 
                         @Override
                         public void onError(@NonNull Throwable e) {
-                            Log.e("MyTag", e.getMessage());
+                            Log.e("ChatActivity", "TCPReceiver observer [sending message failed]: " + e.getMessage());
                         }
                     });
         } catch (NoSuchAlgorithmException | InvalidKeyException | UnsupportedEncodingException | InvalidKeySpecException e) {
@@ -183,7 +183,7 @@ public class ChatActivity extends AppCompatActivity {
         Calendar currentTime = new GregorianCalendar(TimeZone.getDefault());
         chatRecyclerViewAdapter.addItem(new MessageItem( myName, message, currentTime));
         sqlUserData.insert(myName, currentTime, message);
-        Log.d("myLogsChatActivity", "Msg saved");
+        Log.d("ChatActivity", "onClickSendButton: message was saved");
     }
 
     static public void loadChat(int numRows) {
@@ -217,12 +217,12 @@ public class ChatActivity extends AppCompatActivity {
 
                     @Override
                     public void onError(@NonNull Throwable e) {
-                        Log.e("MyTag", e.getMessage());
+                        Log.e("ChatActivity", "loadChat observer: " + e.getMessage());
                     }
 
                     @Override
                     public void onComplete() {
-                        Log.e("MyTag", "updater has completed");
+                        Log.d("ChatActivity", "loadChat observer: updater has completed");
                     }
                 });
     }

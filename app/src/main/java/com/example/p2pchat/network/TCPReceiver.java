@@ -40,6 +40,7 @@ import javax.crypto.SealedObject;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.internal.operators.observable.ObservableReduceMaybe;
 
+
 public class TCPReceiver {
 
     private final int port = 4000;
@@ -106,7 +107,7 @@ public class TCPReceiver {
     }
 
     //TODO: what to do if this is new user, which we don't have in our table, but he does?
-    private String[] ReceiveMessage() throws IOException, ClassNotFoundException, IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException {
+    private String[] ReceiveMessage() throws IOException, ClassNotFoundException, IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeySpecException {
         encryptedMessage = (MessageObject) inputStream.readObject();
 
         String fromPublicKey = encryptedMessage.getSenderPublicKey();
@@ -177,123 +178,13 @@ public class TCPReceiver {
 
     private String getOwnerPrivateKey() {
         //TODO: get real private key
-        return null;
+
+        String privateKey = AsymCryptography.loadPrivateKeyFromKeyStore(userPassword, AsymCryptography.getKeyStore());
+
+        if (privateKey == null) {
+            Log.e ("TCPReceiver", "getOwnerPrivateKey: private key is null");
+        }
+
+        return privateKey;
     }
 }
-
-
-
-
-
-
-
-
-////////////////////////////////////////////////////
-/*class TCPReceiverE extends Thread {
-
-    private Socket socket;
-    private ServerSocket serverSocket;
-    private final int port = 4000;
-    private Handler mHandler;
-    private SQLUserInfo UserTable;
-    private String userPassword;
-    private SharedPreferences keyStore;
-
-    private final int ERROR = 1;
-    private final int SUCCESS = 0;
-    private final String KEY_DATA = "Data";
-    private final String KEY_NAME = "Name";
-    private final String KEY_ERROR = "ErrorMsg";
-
-    public TCPReceiverE(Handler handler, SQLUserInfo db, String pwd, SharedPreferences kStore) {
-        mHandler = handler;
-        UserTable = db;
-        userPassword = pwd;
-        keyStore = kStore;
-    }
-
-    @Override
-    public void run() {
-        try {
-            serverSocket = new ServerSocket(port);
-            while (true) {
-
-                socket = serverSocket.accept();
-
-                String text;
-
-                ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
-                SealedObject sobj = (SealedObject) in.readObject();
-                String ipAddress = socket.getInetAddress().getHostAddress();
-
-                ArrayList<String> aesKeys = UserTable.getAESKeyByIpAddress(ipAddress);
-
-                boolean isAESKeyInTable = false;
-                for (int i = 0; i < aesKeys.size(); ++i)
-                    if (aesKeys.get(i) != null)
-                        isAESKeyInTable = true;
-
-                if (!isAESKeyInTable) {
-                    AsymCryptography S = loadPrivateKey(userPassword);
-
-                    if (S == null) {
-                        text = "Error: AsymCrypt failed\n";
-                    } else {
-                        String symKey = S.decryptMsg(sobj);
-
-                        UserTable.updateAESKeyByIpAddress(symKey, ipAddress);
-
-                        sobj = (SealedObject) in.readObject();
-                        text = SymCryptography.decryptMsg(sobj, SymCryptography.getSecretKeyByString(symKey));
-                    }
-
-                } else {
-
-                    String symKey = aesKeys.get(0);
-                    text = SymCryptography.decryptMsg(sobj, SymCryptography.getSecretKeyByString(symKey));
-                }
-
-
-
-                Message msg = mHandler.obtainMessage();
-
-                Bundle bundle = new Bundle();
-                bundle.putString(KEY_DATA, text);
-                bundle.putString(KEY_NAME, socket.getInetAddress().getHostAddress());
-
-                msg.setData(bundle);
-                msg.what = SUCCESS;
-                mHandler.sendMessage(msg);
-
-                socket.close();
-            }
-        }catch (Exception e) {
-            Message msg = mHandler.obtainMessage();
-
-            Bundle bundle = new Bundle();
-            bundle.putString(KEY_ERROR, e.getMessage());
-
-            msg.setData(bundle);
-            msg.what = ERROR;
-            mHandler.sendMessage(msg);
-
-            return;
-        } finally {
-            try {
-                serverSocket.close();
-            } catch (Exception e) {
-                Log.d("myLog", Objects.requireNonNull(e.getMessage()));
-            }
-        }
-    }
-
-    private AsymCryptography loadPrivateKey(String pwd) {
-        AsymCryptography as = new AsymCryptography();
-        try {
-            as.loadPrivateKey(pwd, keyStore);
-        } catch (IllegalBlockSizeException | BadPaddingException | NoSuchAlgorithmException | IOException | ClassNotFoundException | NoSuchPaddingException | InvalidKeyException | InvalidKeySpecException e){
-            return null;
-        }
-        return as;
-    }
-}*/
