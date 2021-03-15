@@ -6,12 +6,14 @@ import com.example.p2pchat.network.MessageObject;
 
 import org.junit.Test;
 
+import java.lang.reflect.Array;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 
+import javax.crypto.Mac;
 import javax.crypto.SealedObject;
 import javax.crypto.SecretKey;
 
@@ -88,18 +90,67 @@ public class SecureTests {
         try {
             AsymCryptography user = new AsymCryptography();
             SymCryptography aesKey = new SymCryptography();
-            System.out.println(aesKey.getSecretKey());
             String pubKey = AsymCryptography.getStringAsymKey(user.getPublicKey());
             String aesKeyString = SymCryptography.getStringKey(aesKey.getSecretKey());
             MessageObject aesMsg = new MessageObject("user", aesKeyString,
                                                      pubKey,
                                                      MessageObject.SEND_AES_KEY);
             String privateKey = AsymCryptography.getStringAsymKey(user.getPrivateKey());
-            assertEquals(aesMsg.decrypt(privateKey),
+            assertEquals(aesMsg.decryptAesMsg(privateKey),
                          aesKeyString);
         } catch (Exception e) {
             e.getStackTrace();
             assertTrue(false);
         }
     }
+
+    @Test
+    public void Test_getPubKeyFromPrivate() {
+        try{
+            AsymCryptography asymCryptography = new AsymCryptography();
+            PrivateKey privateKey = asymCryptography.getPrivateKey();
+            assertEquals(asymCryptography.getPublicKey(), AsymCryptography.getPublicKeyFromPrivateKey(privateKey));
+        } catch (Exception e) {
+            assertTrue(false);
+        }
+    }
+
+    @Test
+    public void Test_getMac() {
+        try {
+            AsymCryptography asymCryptography = new AsymCryptography();
+            PublicKey publicKey = asymCryptography.getPublicKey();
+            String msg = "User";
+            assertEquals(SymCryptography.getMacMsg(publicKey, msg), SymCryptography.getMacMsg(publicKey, msg));
+        } catch (Exception e) {
+            assertTrue(false);
+        }
+    }
+
+    @Test
+    public void Test_generateAesKeyByString() {
+        try {
+            String key = "adasd";
+            String hash = SymCryptography.getStringHash(key);
+
+            assertEquals(
+                    SymCryptography.getStringHash(key),
+                    SymCryptography.getStringHash(key)
+            );
+
+            SecretKey secretKey = SymCryptography.generateAESKeyByPwd(hash);
+            assertEquals(
+                    SymCryptography.generateAESKeyByPwd(hash),
+                    SymCryptography.generateAESKeyByPwd(hash)
+            );
+
+            Mac mac = Mac.getInstance("HmacSHA256");
+            mac.init(secretKey);
+
+
+        } catch (Exception e) {
+            assertTrue(false);
+        }
+    }
+
 }
