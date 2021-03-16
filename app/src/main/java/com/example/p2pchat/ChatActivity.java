@@ -80,9 +80,9 @@ public class ChatActivity extends AppCompatActivity {
         sqlUserData = new SQLUserData(getBaseContext(),
                 dbUI.getIdByPublicKey(recipientPubKey).get(0));
 
-        mMessages = new ArrayList<>();
+        //mMessages = new ArrayList<>();
         RecyclerView recyclerView = findViewById(R.id.recyclerView);
-        chatRecyclerViewAdapter = new ChatRecyclerViewAdapter(this, mMessages);
+        chatRecyclerViewAdapter = new ChatRecyclerViewAdapter(this);
         recyclerView.setAdapter(chatRecyclerViewAdapter);
         LinearLayoutManager lm = new LinearLayoutManager(this);
         lm.setStackFromEnd(true);
@@ -210,9 +210,8 @@ public class ChatActivity extends AppCompatActivity {
                     @Override
                     public void onNext(@NonNull ArrayList<MessageItem> msgs) {
                         for (MessageItem it : msgs) {
-                            ChatActivity.chatRecyclerViewAdapter.addItem(it);
+                            chatRecyclerViewAdapter.addItem(it);
                         }
-                        ChatActivity.mMessages.addAll(msgs);
                     }
 
                     @Override
@@ -229,8 +228,8 @@ public class ChatActivity extends AppCompatActivity {
 
     static public void loadNewMsg(MessageInfo msg) {
         if (msg.getId().equals(ChatActivity.recipientId)) {
-            ChatActivity.mMessages.add(msg.getMessageItem());
-            ChatActivity.chatRecyclerViewAdapter.addItem(msg.getMessageItem());
+            //ChatActivity.mMessages.add(msg.getMessageItem());
+            chatRecyclerViewAdapter.addItem(msg.getMessageItem());
         }
     }
 }

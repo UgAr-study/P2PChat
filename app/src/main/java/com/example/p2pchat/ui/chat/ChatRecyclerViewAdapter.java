@@ -21,9 +21,9 @@ public class ChatRecyclerViewAdapter extends RecyclerView.Adapter<ChatRecyclerVi
     ArrayList<MessageItem> messageItems;
     Context context;
 
-    public ChatRecyclerViewAdapter(Context ct, ArrayList<MessageItem> items) {
+    public ChatRecyclerViewAdapter(Context ct) {
         context = ct;
-        messageItems = items;
+        messageItems = new ArrayList<>();
     }
 
     @NonNull
@@ -38,10 +38,10 @@ public class ChatRecyclerViewAdapter extends RecyclerView.Adapter<ChatRecyclerVi
     public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
 
         String name = messageItems.get(position).getName();
-        SpannableString ss=new SpannableString(name);
+        SpannableString ss = new SpannableString(name);
         ss.setSpan(new UnderlineSpan(), 0, name.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 
-        holder.fromName.setText(messageItems.get(position).getName());
+        holder.fromName.setText(ss);
         holder.message.setText(messageItems.get(position).getMessage());
         holder.timeStamp.setText(messageItems.get(position).getTimeHoursMinutes());
     }
