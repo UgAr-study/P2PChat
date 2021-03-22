@@ -1,6 +1,7 @@
 package com.example.p2pchat;
 
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
@@ -61,6 +62,8 @@ public class MainActivity extends AppCompatActivity implements DialoguesRecycler
     private DialoguesFragment dialoguesFragment;
     private HomeFragment homeFragment;
     private DashboardFragment dashboardFragment;
+
+    private final IntentFilter intentFilter = new IntentFilter();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
