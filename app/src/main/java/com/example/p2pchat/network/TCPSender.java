@@ -36,7 +36,9 @@ public class TCPSender {
                 Close();
                 emmit.onComplete();
             } catch (Exception e) {
-                Close();
+                try {
+                    Close();
+                } catch (Exception ignored) {}
                 emmit.onError(e);
             }
         });
@@ -51,7 +53,6 @@ public class TCPSender {
         InetAddress ipAddr = InetAddress.getByName(ipAddress);
         socket = new Socket();
         socket.connect(new InetSocketAddress(ipAddr, serverPort), TIME_OUT);
-        //TODO: if socket didn't connect, what is next?
         out = new ObjectOutputStream(socket.getOutputStream());
     }
 

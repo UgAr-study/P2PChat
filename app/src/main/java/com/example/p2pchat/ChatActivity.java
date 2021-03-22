@@ -130,6 +130,7 @@ public class ChatActivity extends AppCompatActivity {
 
                             @Override
                             public void onError(@NonNull Throwable e) {
+                                Toast.makeText(ChatActivity.this, "Message wasn't sent", Toast.LENGTH_SHORT).show();
                                 Log.e("ChatActivity", "TCPReceiver observer [sending aes key failed]: " + e.getMessage());
                             }
                         });
@@ -168,22 +169,21 @@ public class ChatActivity extends AppCompatActivity {
                         @Override
                         public void onComplete() {
                             Log.d("ChatActivity", "TCPReceiver observer: message was sent");
+                            Calendar currentTime = new GregorianCalendar(TimeZone.getDefault());
+                            chatRecyclerViewAdapter.addItem(new MessageItem( myName, message, currentTime));
+                            sqlUserData.insert(myName, currentTime, message);
+                            Log.d("ChatActivity", "onClickSendButton: message was saved");
                         }
 
                         @Override
                         public void onError(@NonNull Throwable e) {
+                            Toast.makeText(ChatActivity.this, "Message wasn't sent", Toast.LENGTH_SHORT).show();
                             Log.e("ChatActivity", "TCPReceiver observer [sending message failed]: " + e.getMessage());
                         }
                     });
         } catch (NoSuchAlgorithmException | InvalidKeyException | UnsupportedEncodingException | InvalidKeySpecException e) {
             Toast.makeText(this, "Crypto error", Toast.LENGTH_SHORT).show();
-            return;
         }
-
-        Calendar currentTime = new GregorianCalendar(TimeZone.getDefault());
-        chatRecyclerViewAdapter.addItem(new MessageItem( myName, message, currentTime));
-        sqlUserData.insert(myName, currentTime, message);
-        Log.d("ChatActivity", "onClickSendButton: message was saved");
     }
 
     static public void loadChat(int numRows) {

@@ -2,18 +2,11 @@ package com.example.p2pchat.network;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.util.Log;
-import android.util.Pair;
-
-import androidx.cardview.widget.CardView;
 
 import com.example.p2pchat.dataTools.SQLUserData;
 import com.example.p2pchat.dataTools.SQLUserInfo;
 import com.example.p2pchat.security.AsymCryptography;
-import com.example.p2pchat.security.SymCryptography;
 import com.example.p2pchat.ui.chat.MessageItem;
 
 import java.io.IOException;
@@ -23,22 +16,14 @@ import java.net.Socket;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.Locale;
-import java.util.Objects;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SealedObject;
 
 import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.internal.operators.observable.ObservableReduceMaybe;
 
 
 public class TCPReceiver {
@@ -74,9 +59,13 @@ public class TCPReceiver {
         observable = Observable.create(emmit -> {
 
             try {
-                CreateSocket();
+                CreateServerSocket();
+            } catch (Exception e) {
+                emmit.onError(e);
+            }
 
-                while (true) {
+            while (true) {
+                try {
                     Connect();
                     String[] rcvMessage = ReceiveMessage();
                     MessageInfo item = ParseMessage(rcvMessage);
@@ -84,11 +73,9 @@ public class TCPReceiver {
 
                     if (item != null)
                         emmit.onNext(item);
+                } catch (Exception e) {
+                    emmit.onError(e);
                 }
-
-            } catch (Exception e) {
-                CloseAll();
-                emmit.onError(e);
             }
         });
     }
@@ -97,7 +84,7 @@ public class TCPReceiver {
         return observable;
     }
 
-    private void CreateSocket() throws IOException {
+    private void CreateServerSocket() throws IOException {
         serverSocket = new ServerSocket(port);
     }
 

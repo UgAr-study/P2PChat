@@ -47,17 +47,20 @@ public class MCReceiver {
 
             try {
                 Connect();
+            } catch (Exception e) {
+                Close();
+                emmit.onError(e);
+            }
 
-                while (true) {
+            while (true) {
+                try {
                     requestMsg = ReceiveMessage();
                     userInfo = ParseMessage(requestMsg);
                     if (userInfo != null)
                         emmit.onNext(userInfo);
+                } catch (Exception e) {
+                    emmit.onError(e);
                 }
-
-            } catch (Exception e) {
-                Close();
-                emmit.onError(e);
             }
         });
     }
